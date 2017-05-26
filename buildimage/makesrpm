@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+set -e
+
+function exit_error {
+   echo $1 >&2
+   exit 1
+}
+
+function help {
+   echo "Usage: $0 -s input.spec [-c commit]" >&2
+   echo '
+             -s input.spec         : The input RPM .spec file
+             -c commit             : the commit tag for development version build
+' >&2
+}
+
+while getopts "s:c:" opt; do
+    case $opt in
+    s)
+        specfile=$OPTARG
+        [ -z "${specfile}" ] && exit_error "No spec file given"
+        ;;
+    c)
+        commit=$OPTARG
+        [ -z "${commit}" ] && exit_error "No commit given"
+        ;;
+    \?)
+        help
+        exit_error "Invalid option: -$OPTARG"
+        ;;
+    esac
+done
+
+topdir=$(rpm --eval '%_topdir')
+
+# Cleanup the topdir
+find ${topdir} \( -type f -o -type l \) -delete
+
+cp -v ${specfile} ${topdir}/SPECS
+
+if [[ -d .git ]]; then
+    echo "[INFO] Generate source tarball with git-archive"
+    gitrev=$(git rev-parse ${commit:-HEAD})
+    source0=$(basename $(spectool -s 0 ${specfile} | cut -f 2 -d ' '))
+    prefix=$(basename ${source0} .tar.gz)
+    git archive --format=tar --prefix=${prefix}/ ${gitrev} | (
+        arcdir=$(mktemp -d)
+        cd $arcdir
+        tar xf -
+        tar -c -z --exclude-vcs --exclude='.gitignore' -f ${topdir}/SOURCES/${source0} ${prefix}
+        rm -rf $arcdir
+    )
+fi
+
+# Fetch (remote) sources
+spectool -C ${topdir}/SOURCES -g ${topdir}/SPECS/*.spec
+
+if [[ -f SHA1SUM ]]; then
+    # Check source integrity
+    pushd ${topdir}/SOURCES;
+    sha1sum -c < $(dirs -l +1)/SHA1SUM
+    popd
+fi
+
+exec rpmbuild -D "dist ${DIST:-.ns7}" -bs ${topdir}/SPECS/*.spec
