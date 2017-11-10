@@ -66,5 +66,5 @@ With **buildah** ::
 Optimizations
 -------------
 
-The file:`/var/yum/cache` directory could be volume-mounted across builds to
+The ``/var/yum/cache/`` directory could be volume-mounted across builds to
 speed up YUM downloads.
