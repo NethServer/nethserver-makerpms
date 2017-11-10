@@ -31,4 +31,7 @@ install -vp src/sbin/* %{buildroot}/%{_sbindir}
 
 %changelog
 * Fri Nov 10 2017 Davide Principi <davide.principi@nethesis.it> - 0.0.0-1
+- Initial alpha version
+
+* Fri Nov 10 2017 Davide Principi <davide.principi@nethesis.it> - 0.0.0-1
 - Initial version
