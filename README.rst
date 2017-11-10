@@ -4,20 +4,20 @@ nethserver-makerpms
 
 Build RPMs in a Linux container
 
-Installation
-============
+Usage
+=====
 
-`Download RPMs <https://github.com/NethServer/nethserver-makerpms/releases>`_ for CentOS 7 and Fedora 26+.
+`Download RPMs <https://github.com/NethServer/nethserver-makerpms/releases>`_
+for Fedora 26+ and install on the local system.
 
-Install RPM ::
+Create the builder image (optional)::
 
-  yum install nethserver-makerpms-*.rpm
+  sudo buildah bud -t nethserver/makerpms buildimage
 
-Create the builder image ::
+Build an RPM. Move to the git repository root directory then ::
 
-  buildah bud -t nethserver/makerpms buildimage
+  sudo makerpms
 
-Build 
 
 Container image reference
 =========================
@@ -40,18 +40,18 @@ Requisites to build RPMs starting from a git repository:
 
 - The .spec file is placed at the root of the repository
 
-- In the specfile, ``source0`` corresponds to the git archive output in 
+- In the specfile, ``source0`` corresponds to the git archive output in
   ``tar.gz`` format (e.g. ``Source: %{name}-%{version}.tar.gz``)
 
 - If a SHA1SUM file at the root of the repository exists, the integrity of
   additional source tarballs is checked against it
 
-Additional missing tarballs are downloaded automatically with ``spectool`` 
+Additional missing tarballs are downloaded automatically with ``spectool``
 during the build.
 
-If requirements are met, change directory to the repository root then to 
+If requirements are met, change directory to the repository root then to
 start a build with **docker** run ::
-  
+
   docker run --name builder -v $PWD:/srv/makerpms/src:ro  nethserver/makerpms
   docker cp -a builder:/srv/makerpms/rpmbuild/SRPMS .
   docker cp -a builder:/srv/makerpms/rpmbuild/RPMS .
@@ -66,5 +66,5 @@ With **buildah** ::
 Optimizations
 -------------
 
-The file:`/var/yum/cache` directory could be volume-mounted across builds to 
+The file:`/var/yum/cache` directory could be volume-mounted across builds to
 speed up YUM downloads.
