@@ -52,7 +52,7 @@ during the build.
 If requirements are met, change directory to the repository root then to
 start a build with **docker** run ::
 
-  docker run --name builder -v $PWD:/srv/makerpms/src:ro  nethserver/makerpms
+  docker run --name builder --privileged=true -v $PWD:/srv/makerpms/src:ro  nethserver/makerpms
   docker cp -a builder:/srv/makerpms/rpmbuild/SRPMS .
   docker cp -a builder:/srv/makerpms/rpmbuild/RPMS .
   docker rm builder
