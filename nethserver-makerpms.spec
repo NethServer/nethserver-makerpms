@@ -27,6 +27,7 @@ install -vp src/sbin/* %{buildroot}/%{_sbindir}
 %defattr(-,root,root,-)
 %{_sbindir}/makerpms
 %{_sbindir}/makesrpm
+%{_sbindir}/uploadrpms
 %doc LICENSE
 
 %changelog
