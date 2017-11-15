@@ -24,8 +24,9 @@ set -e
 
 builder=$(buildah from nethserver/makerpms)
 mnt=$(buildah mount $builder)
-buildah run -v $PWD:/srv/makerpms/src:ro $builder -- makesrpm -s \*.spec
+buildah run -v $PWD:/srv/makerpms/src:ro $builder -- /usr/local/bin/makesrpm -s \*.spec
+mkdir upload
 for RPM in $(find $mnt/srv/makerpms/rpmbuild -type f -name '*.rpm'); do
-    cp -f $RPM .
+    cp -f $RPM upload/
 done
 buildah rm $builder

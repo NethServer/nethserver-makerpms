@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
@@ -18,10 +20,9 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-FROM centos:7
-COPY makerpms makesrpm uploadrpms /usr/local/bin/
-COPY buildimage /usr/local/sbin/
-RUN buildimage
-USER makerpms
-RUN rpmdev-setuptree
-WORKDIR /srv/makerpms/src
+set -e
+
+builder=$(buildah from nethserver/makerpms)
+mnt=$(buildah mount $builder)
+buildah run -v $PWD:/srv/makerpms/src/upload:ro $builder -- /usr/local/bin/uploadrpms $1 *.rpm
+buildah rm $builder
