@@ -76,6 +76,15 @@ fi
 # Fetch (remote) sources
 spectool -C ${topdir}/SOURCES -g ${topdir}/SPECS/*.spec
 
+# Fetch (local) sources
+local_sources=$(spectool -l ${topdir}/SPECS/*.spec | awk '{print $2}')
+
+for f in $local_sources; do
+	if [ -f "$f" ]; then
+		cp -v "$f" ${topdir}/SOURCES
+	fi
+done
+
 if [[ -f SHA1SUM ]]; then
     # Check source integrity
     pushd ${topdir}/SOURCES;

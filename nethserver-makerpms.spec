@@ -1,8 +1,8 @@
 Name:           nethserver-makerpms
-Version: 0.0.0
-Release: 1%{?dist}
+Version:        0.0.0
+Release:        1%{?dist}
 Summary:        RPM build automation scripts for NethServer packages
-BuildArch:	noarch
+BuildArch:      noarch
 
 License:        GPLv3
 URL:            http://www.nethserver.org
@@ -27,6 +27,7 @@ install -vp src/sbin/* %{buildroot}/%{_sbindir}
 %defattr(-,root,root,-)
 %{_sbindir}/makerpms
 %{_sbindir}/makesrpm
+%{_sbindir}/uploadrpms
 %doc LICENSE
 
 %changelog

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
@@ -17,11 +19,15 @@
 # You should have received a copy of the GNU General Public License
 # along with NethServer.  If not, see COPYING.
 #
-
-FROM centos:7
-COPY makerpms makesrpm uploadrpms /usr/local/bin/
-COPY buildimage /usr/local/sbin/
-RUN buildimage
-USER makerpms
-RUN rpmdev-setuptree
-WORKDIR /srv/makerpms/src
+cd upload
+dest=$1;
+shift;
+( spool=$(mktemp -u "${USER}.XXXXXX");
+echo "mkdir $spool";
+echo "cd $spool";
+for F in $*;
+do
+    echo "put -p $F";
+done;
+echo "cd ..";
+echo "rename $spool commit-$spool" ) | sftp -i upload_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -q -p -b - ${dest} | grep --color=auto --color=auto '^sftp> put'

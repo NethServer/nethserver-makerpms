@@ -23,6 +23,12 @@
 topdir=$(rpm --eval '%_topdir')
 
 makesrpm $*
+if [[ $? != 0 ]]; then
+    exit 1
+fi
+
 echo '[INFO] Installing build deps...'
 rpm -qp --requires ${topdir}/SRPMS/*.src.rpm | xargs "--delimiter=\\n" -- sudo yum install -y --setopt=tsflags=nodocs
+
+echo '[INFO] Rebuild ' ${topdir}/SRPMS/*.src.rpm
 exec rpmbuild -D "dist ${DIST:-.ns7}" --rebuild ${topdir}/SRPMS/*.src.rpm
