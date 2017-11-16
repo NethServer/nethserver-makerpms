@@ -81,7 +81,7 @@ local_sources=$(spectool -l ${topdir}/SPECS/*.spec | awk '{print $2}')
 
 for f in $local_sources; do
 	if [ -f "$f" ]; then
-		cp -a "$f" ${topdir}/SOURCES
+		cp -v "$f" ${topdir}/SOURCES
 	fi
 done
 
