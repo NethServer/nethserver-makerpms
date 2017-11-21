@@ -19,15 +19,32 @@
 # You should have received a copy of the GNU General Public License
 # along with NethServer.  If not, see COPYING.
 #
-cd upload
+
+set -e
+
 dest=$1;
 shift;
-( spool=$(mktemp -u "${USER}.XXXXXX");
-echo "mkdir $spool";
-echo "cd $spool";
-for F in $*;
-do
-    echo "put -p $F";
-done;
-echo "cd ..";
-echo "rename $spool commit-$spool" ) | sftp -i upload_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -q -p -b - ${dest} | grep --color=auto --color=auto '^sftp> put'
+
+username=${dest%%\@*}
+
+if [[ -z "${username}" || "${username}" == "${dest}" ]]; then
+    username=$(whoami)
+fi
+
+tmpcmd=$(mktemp)
+
+trap "rm -f $tmpcmd" EXIT
+
+(
+    spool=$(mktemp -u "${username}.XXXXXX");
+    echo "mkdir $spool";
+    echo "cd $spool";
+    for F in $*;
+    do
+        echo "put -p $F";
+    done;
+    echo "cd ..";
+    echo "rename $spool commit-$spool"
+) >>$tmpcmd
+
+sftp -b "${tmpcmd}" "${dest}"

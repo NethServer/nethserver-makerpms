@@ -27,8 +27,20 @@ yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver
 yum clean all
 rm -rf /var/cache/yum/*
 useradd -m -d /srv/makerpms -r makerpms
-mkdir /srv/makerpms/src
-chown makerpms.makerpms /srv/makerpms/src
+mkdir /srv/makerpms/src /srv/makerpms/.ssh
+chmod 700 /srv/makerpms/.ssh
+cat - > /srv/makerpms/.ssh/config <<EOF
+UserKnownHostsFile=/dev/null
+StrictHostKeyChecking=no
+IdentityFile=~/upload/identity
+EOF
+chmod 600 /srv/makerpms/.ssh/config
+chown makerpms.makerpms \
+    /srv/makerpms/src \
+    /srv/makerpms/.ssh \
+    /srv/makerpms/.ssh/config \
+    ;
+
 echo 'makerpms ALL=NOPASSWD: /usr/bin/yum' > /etc/sudoers.d/10_makerpms
 chmod 440 /etc/sudoers.d/10_makerpms
 chown -v root.root /usr/local/bin/make{rpms,srpm} /usr/local/sbin/buildimage
