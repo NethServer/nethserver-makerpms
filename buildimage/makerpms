@@ -23,8 +23,8 @@
 topdir=$(rpm --eval '%_topdir')
 
 # Run makesrpm first, if src RPM is not available:
-if [[ "${topdir}/SRPMS/*.src.rpm" == "${topdir}/SRPMS/\*.src.rpm" ]]; then
-    makesrpm $*
+if [[ ${topdir}/SRPMS/*.src.rpm == "${topdir}/SRPMS/*.src.rpm" ]]; then
+    makesrpm "$@"
     if [[ $? != 0 ]]; then
         exit 1
     fi
