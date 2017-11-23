@@ -26,22 +26,28 @@ yum -y --setopt=tsflags=nodocs install http://packages.nethserver.org/nethserver
 yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed
 yum clean all
 rm -rf /var/cache/yum/*
-useradd -m -d /srv/makerpms -r makerpms
-mkdir /srv/makerpms/src /srv/makerpms/.ssh
-chmod 700 /srv/makerpms/.ssh
-cat - > /srv/makerpms/.ssh/config <<EOF
-UserKnownHostsFile=/dev/null
-StrictHostKeyChecking=no
-IdentityFile=~/upload/identity
-EOF
-chmod 600 /srv/makerpms/.ssh/config
-chown makerpms.makerpms \
-    /srv/makerpms/src \
-    /srv/makerpms/.ssh \
-    /srv/makerpms/.ssh/config \
-    ;
 
 echo 'makerpms ALL=NOPASSWD: /usr/bin/yum' > /etc/sudoers.d/10_makerpms
 chmod 440 /etc/sudoers.d/10_makerpms
 chown -v root.root /usr/local/bin/make{rpms,srpm} /usr/local/sbin/buildimage
 chmod -v 755 /usr/local/bin/make{rpms,srpm} /usr/local/sbin/buildimage
+chmod -v 755 /entrypoint
+chown -v root.root /entrypoint
+
+useradd -m -d /srv/makerpms -r makerpms
+mkdir -v /srv/makerpms/{src,.ssh}
+chmod -v 700 /srv/makerpms/.ssh
+cat - > /srv/makerpms/.ssh/config <<EOF
+UserKnownHostsFile=/dev/null
+StrictHostKeyChecking=no
+EOF
+touch /srv/makerpms/.ssh/id_rsa
+chmod -v 600 /srv/makerpms/.ssh/config /srv/makerpms/.ssh/id_rsa
+chown -v makerpms.makerpms \
+    /srv/makerpms/src \
+    /srv/makerpms/.ssh \
+    /srv/makerpms/.ssh/config \
+    /srv/makerpms/.ssh/id_rsa \
+    ;
+
+runuser -u makerpms -- rpmdev-setuptree -d
