@@ -22,9 +22,12 @@
 
 topdir=$(rpm --eval '%_topdir')
 
-makesrpm $*
-if [[ $? != 0 ]]; then
-    exit 1
+# Run makesrpm first, if src RPM is not available:
+if [[ "${topdir}/SRPMS/*.src.rpm" == "${topdir}/SRPMS/\*.src.rpm" ]]; then
+    makesrpm $*
+    if [[ $? != 0 ]]; then
+        exit 1
+    fi
 fi
 
 echo '[INFO] Installing build deps...'
