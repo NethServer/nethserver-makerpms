@@ -72,15 +72,15 @@ if [[ -d .git ]]; then
         tar -c -z --exclude-vcs --exclude='.gitignore' -f ${topdir}/SOURCES/${source0} ${prefix}
         rm -rf $arcdir
     )
-    tmplog=$(mktemp)
-    echo "[INFO] Write temporary %changelog in ${specfile}"
-    git log --format="* %cd %aN <%aE> - %h%n- %s%d%n" --date=local | sed -r 's/[0-9]+:[0-9]+:[0-9]+ //; s/%/%%/' >> ${tmplog}
-    sed -i $'/^%changelog/ {\nr '${tmplog}$'\nq\n}' ${specfile}
-    rm -f ${tmplog}
     IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
     if [[ -n "${desc_commitn}" && -n "${DIST}" ]]; then
         echo "[INFO] prepend the number of commits to DIST tag: ${desc_commitn}"
         DIST=".${desc_commitn}${DIST}"
+        tmplog=$(mktemp)
+        echo "[INFO] Write temporary %changelog in ${specfile}"
+        git log -n ${desc_commitn} --format="* %cd %aN <%aE> - %h%n- %s%d%n" --date=local | sed -r 's/[0-9]+:[0-9]+:[0-9]+ //; s/%/%%/' >> ${tmplog}
+        sed -i $'/^%changelog/ {\nr '${tmplog}$'\nq\n}' ${specfile}
+        rm -f ${tmplog}
     fi
 fi
 
