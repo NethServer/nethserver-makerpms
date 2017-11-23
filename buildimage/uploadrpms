@@ -20,16 +20,30 @@
 # along with NethServer.  If not, see COPYING.
 #
 
+#
+# usage:
+#      uploadrpms [RPMDIR] SFTOPTS
+#
+# .rpm files are searched under RPMDIR recursively and uploaded with sftp
+# according to SFTPOPTS
+#
+
 set -e
 
-dest=$1;
-shift;
-
-username=${dest%%\@*}
-
-if [[ -z "${username}" || "${username}" == "${dest}" ]]; then
-    username=$(whoami)
+if [[ -n "$1" && -d "$1" ]]; then
+    cd "$1";
+    shift;
+else 
+    cd $(rpm --eval '%_topdir')
 fi
+
+username=$(whoami)
+for arg in "$@"; do
+    if [[ $arg =~ \@ ]]; then
+        username=${arg%%\@*}
+        break
+    fi
+done
 
 tmpcmd=$(mktemp)
 
@@ -39,12 +53,11 @@ trap "rm -f $tmpcmd" EXIT
     spool=$(mktemp -u "${username}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
-    for F in $*;
-    do
+    for F in $(find . -name '*.rpm'); do
         echo "put -p $F";
     done;
     echo "cd ..";
     echo "rename $spool commit-$spool"
 ) >>$tmpcmd
 
-sftp -b "${tmpcmd}" "${dest}"
+sftp -b "${tmpcmd}" "$@"
