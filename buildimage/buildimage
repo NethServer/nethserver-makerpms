@@ -23,14 +23,12 @@
 set -e
 
 yum -y --setopt=tsflags=nodocs install http://packages.nethserver.org/nethserver/nethserver-release-7.rpm epel-release
-yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed
+yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed openssl
 yum clean all
 rm -rf /var/cache/yum/*
 
 echo 'makerpms ALL=NOPASSWD: /usr/bin/yum' > /etc/sudoers.d/10_makerpms
 chmod 440 /etc/sudoers.d/10_makerpms
-chown -v root.root /usr/local/bin/make{rpms,srpm} /usr/local/sbin/buildimage
-chmod -v 755 /usr/local/bin/make{rpms,srpm} /usr/local/sbin/buildimage
 chmod -v 755 /entrypoint
 chown -v root.root /entrypoint
 

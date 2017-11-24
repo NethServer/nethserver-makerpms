@@ -20,22 +20,9 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-#
-# usage:
-#      uploadrpms [RPMDIR] SFTOPTS
-#
-# .rpm files are searched under RPMDIR recursively and uploaded with sftp
-# according to SFTPOPTS
-#
-
 set -e
 
-if [[ -n "$1" && -d "$1" ]]; then
-    cd "$1";
-    shift;
-else 
-    cd $(rpm --eval '%_topdir')
-fi
+cd $(rpm --eval '%_topdir')
 
 username=$(whoami)
 for arg in "$@"; do

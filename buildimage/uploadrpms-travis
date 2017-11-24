@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+#
+# Variables from environment:
+#
+# REPO_DEST
+# UPLOAD_DEST
+# NSVER
+# VERSIONS_PACK
+# STAGES_PACK
+# TRAVIS_TAG
+# TRAVIS_PULL_REQUEST_BRANCH
+# TRAVIS_BRANCH
+# SECRET
+# SECRET_URL
+# KEYCIPHER (optional)
+
+KEYCIPHER=${KEYCIPHER:-aes-256-cbc}
+
+declare -A "versions=(${VERSIONS_PACK})"
+declare -A "stages=(${STAGES_PACK})"
+
+if [[ -n "${TRAVIS_TAG}" ]]; then
+    repo_name=${stages[${REPO_DEST}-release]}
+elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" && "${TRAVIS_BRANCH}" == "master" ]]; then
+    repo_name=${stages[${REPO_DEST}-testing]}
+else
+    repo_name=${stages[${REPO_DEST}-autobuild]}
+fi
+
+curl -s "${SECRET_URL}" | \
+    openssl ${KEYCIPHER} -a -d -pass "pass:${SECRET}" > /srv/makerpms/.ssh/id_rsa
+
+uploadrpms "$@" ${UPLOAD_DEST}/${versions[$NSVER]}/${repo_name}
+
+
+
+echo "" > /srv/makerpms/.ssh/id_rsa
