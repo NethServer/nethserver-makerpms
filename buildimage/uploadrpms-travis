@@ -37,9 +37,6 @@
 # SECRET
 # SECRET_URL
 # NETHBOT_GITHUB_TOKEN
-# KEYCIPHER (optional)
-
-KEYCIPHER=${KEYCIPHER:-aes-256-cbc}
 
 declare -A "versions=(${VERSIONS_PACK})"
 declare -A "stages=(${STAGES_PACK})"
@@ -52,31 +49,42 @@ else
     repo_name=${stages[${REPO_DEST}-autobuild]}
 fi
 
-curl -s "${SECRET_URL}" | \
-    openssl ${KEYCIPHER} -a -d -pass "pass:${SECRET}" > /srv/makerpms/.ssh/id_rsa
+# Clean up the private key and shutdown agent
+trap '> /srv/makerpms/.ssh/id_rsa; kill $SSH_AGENT_PID' EXIT
+
+curl -s "${SECRET_URL}" > /srv/makerpms/.ssh/id_rsa
+
+eval $(ssh-agent)
+
+expect << EOF
+  spawn ssh-add /srv/makerpms/.ssh/id_rsa
+  expect "Enter passphrase"
+  send "${SECRET}\r"
+  expect eof
+EOF
+
+unset SECRET
 
 uploadrpms "$@" ${UPLOAD_DEST}/${versions[$NSVER]}/${repo_name}
 
-if [ $? -eq 0 ]
-then
-    echo "Commenting on GitHub: ${TRAVIS_REPO_SLUG}/pulls/${TRAVIS_PULL_REQUEST}..."
+if [[ $? != 0 ]]; then
+    echo "[ERROR] sftp upload error" 1>&2
+    exit 1
+fi
 
-    comment=$(mktemp)
-    echo -n "in nethserver-${REPO_NAME} v${NSVER}:\n" >> $comment
-    for RPM in $(find /srv/makerpms/rpmbuild -name '*.rpm' -type f); do
-        if [[ "$RPM" != *.src.rpm ]]; then
-            RPMFILE=$(basename ${RPM})
-            echo -n "- [$RPMFILE](http://packages.nethserver.org/nethserver/${REPO_RELEASE}/${REPO_NAME}/x86_64/Packages/$RPMFILE)\n" >> $comment
-        fi
-    done
+echo "[INFO] Commenting on GitHub: ${TRAVIS_REPO_SLUG}/pulls/${TRAVIS_PULL_REQUEST}..."
 
-    curl -s -X POST \
+comment=$(mktemp)
+echo -n "in nethserver-${REPO_NAME} v${NSVER}:\n" >> $comment
+for RPM in $(find /srv/makerpms/rpmbuild -name '*.rpm' -type f); do
+    if [[ "$RPM" != *.src.rpm ]]; then
+        RPMFILE=$(basename ${RPM})
+        echo -n "- [$RPMFILE](http://packages.nethserver.org/nethserver/${REPO_RELEASE}/${REPO_NAME}/x86_64/Packages/$RPMFILE)\n" >> $comment
+    fi
+done
+
+curl -s -X POST \
     -H "Authorization: Basic ${NETHBOT_GITHUB_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "{ \"body\": \"$(< comment)\" }" \
     "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments"
-
-    echo "" > /srv/makerpms/.ssh/id_rsa
-else
-    exit 1
-fi

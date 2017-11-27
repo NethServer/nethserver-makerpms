@@ -23,7 +23,7 @@
 set -e
 
 yum -y --setopt=tsflags=nodocs install http://packages.nethserver.org/nethserver/nethserver-release-7.rpm epel-release
-yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed openssl
+yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed openssl expect
 yum clean all
 rm -rf /var/cache/yum/*
 
