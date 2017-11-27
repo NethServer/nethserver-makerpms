@@ -31,7 +31,7 @@ if [[ $(id -u makerpms) != ${src_owner_uid} || $(id -g makerpms) != ${src_owner_
     echo "[INFO] Changing makerpms uid/gid to ${src_owner_uid}/${src_owner_gid}"
     groupmod -g ${src_owner_gid} makerpms
     usermod -u ${src_owner_uid} -g ${src_owner_gid} makerpms
-    chown -R makerpms:makerpms ~makerpms
+    chown -f -R makerpms:makerpms ~makerpms
 fi
 
 exec runuser -u makerpms -- "$@"
