@@ -21,17 +21,20 @@
 #
 
 if (( EUID != 0 )); then
+    echo "[INFO] Running as $(id): " "$@"
     exec "$@"
 fi
 
+home_owner=$(stat -c %u:%g /srv/makerpms)
 src_owner_uid=$(stat -c %u /srv/makerpms/src)
 src_owner_gid=$(stat -c %g /srv/makerpms/src)
 
-if [[ $(id -u makerpms) != ${src_owner_uid} || $(id -g makerpms) != ${src_owner_gid} ]]; then
+if [[ ${home_owner} != ${src_owner_uid}:${src_owner_gid} ]]; then
     echo "[INFO] Changing makerpms uid/gid to ${src_owner_uid}/${src_owner_gid}"
     groupmod -g ${src_owner_gid} makerpms
     usermod -u ${src_owner_uid} -g ${src_owner_gid} makerpms
     chown -f -R makerpms:makerpms ~makerpms
+    sync
 fi
 
 exec runuser -u makerpms -- "$@"
