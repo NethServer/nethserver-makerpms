@@ -24,15 +24,19 @@
 # Variables from environment:
 #
 # REPO_DEST
+# REPO_NAME
 # UPLOAD_DEST
 # NSVER
 # VERSIONS_PACK
 # STAGES_PACK
 # TRAVIS_TAG
+# TRAVIS_PULL_REQUEST
 # TRAVIS_PULL_REQUEST_BRANCH
 # TRAVIS_BRANCH
+# TRAVIS_REPO_SLUG
 # SECRET
 # SECRET_URL
+# NETHBOT_GITHUB_TOKEN
 # KEYCIPHER (optional)
 
 KEYCIPHER=${KEYCIPHER:-aes-256-cbc}
@@ -53,6 +57,26 @@ curl -s "${SECRET_URL}" | \
 
 uploadrpms "$@" ${UPLOAD_DEST}/${versions[$NSVER]}/${repo_name}
 
+if [ $? -eq 0 ]
+then
+    echo "Commenting on GitHub: ${TRAVIS_REPO_SLUG}/pulls/${TRAVIS_PULL_REQUEST}..."
 
+    comment=$(mktemp)
+    echo -n "in nethserver-${REPO_NAME} v${NSVER}:\n" >> $comment
+    for RPM in $(find /srv/makerpms/rpmbuild -name '*.rpm' -type f); do
+        if [[ "$RPM" != *.src.rpm ]]; then
+            RPMFILE=$(basename ${RPM})
+            echo -n "- [$RPMFILE](http://packages.nethserver.org/nethserver/${REPO_RELEASE}/${REPO_NAME}/x86_64/Packages/$RPMFILE)\n" >> $comment
+        fi
+    done
 
-echo "" > /srv/makerpms/.ssh/id_rsa
+    curl -s -X POST \
+    -H "Authorization: Basic ${NETHBOT_GITHUB_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "{ \"body\": \"$(< comment)\" }" \
+    "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments"
+
+    echo "" > /srv/makerpms/.ssh/id_rsa
+else
+    exit 1
+fi
