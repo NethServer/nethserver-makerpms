@@ -44,7 +44,7 @@ declare -A "stages=(${STAGES_PACK})"
 
 if [[ -n "${TRAVIS_TAG}" ]]; then
     repo_name=${stages[${DEST_ID}-updates]}
-elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" && "${TRAVIS_BRANCH}" == "master" ]]; then
+elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     repo_name=${stages[${DEST_ID}-testing]}
 else
     repo_name=${stages[${DEST_ID}-autobuild]}

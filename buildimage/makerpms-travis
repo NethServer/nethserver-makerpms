@@ -37,14 +37,15 @@ IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "
 export DIST
 
 if [[ -n "${TRAVIS_TAG}" ]]; then
-    # tagged release
+    # updates/tagged release
     DIST=.ns${NSVER}
-elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" && "${TRAVIS_BRANCH}" == "master" ]]; then
+elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     # testing
     DIST=.${desc_commitn}.g${TRAVIS_COMMIT:0:7}.ns${NSVER}
 else
     # autobuild
     DIST=.${desc_commitn}.pr${TRAVIS_PULL_REQUEST}.g${TRAVIS_COMMIT:0:7}.ns${NSVER}
+    export SPEC_URLTAG="https://github.com/${TRAVIS_REPO_SLUG}/pull/${TRAVIS_PULL_REQUEST}"
 fi
 
 exec makerpms "$@"
