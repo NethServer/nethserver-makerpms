@@ -23,8 +23,7 @@
 #
 # Variables from environment:
 #
-# REPO_DEST
-# REPO_NAME
+# DEST_ID
 # UPLOAD_DEST
 # NSVER
 # VERSIONS_PACK
@@ -38,15 +37,17 @@
 # SECRET_URL
 # NETHBOT_GITHUB_TOKEN
 
+UPLOAD_DEST=${UPLOAD_DEST:-travisbot@packages.nethserver.org:nscom}
+
 declare -A "versions=(${VERSIONS_PACK})"
 declare -A "stages=(${STAGES_PACK})"
 
 if [[ -n "${TRAVIS_TAG}" ]]; then
-    repo_name=${stages[${REPO_DEST}-release]}
+    repo_name=${stages[${DEST_ID}-updates]}
 elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" && "${TRAVIS_BRANCH}" == "master" ]]; then
-    repo_name=${stages[${REPO_DEST}-testing]}
+    repo_name=${stages[${DEST_ID}-testing]}
 else
-    repo_name=${stages[${REPO_DEST}-autobuild]}
+    repo_name=${stages[${DEST_ID}-autobuild]}
 fi
 
 # Clean up the private key and shutdown agent
@@ -71,20 +72,3 @@ if [[ $? != 0 ]]; then
     echo "[ERROR] sftp upload error" 1>&2
     exit 1
 fi
-
-echo "[INFO] Commenting on GitHub: ${TRAVIS_REPO_SLUG}/pulls/${TRAVIS_PULL_REQUEST}..."
-
-comment=$(mktemp)
-echo -n "in nethserver-${REPO_NAME} v${NSVER}:\n" >> $comment
-for RPM in $(find /srv/makerpms/rpmbuild -name '*.rpm' -type f); do
-    if [[ "$RPM" != *.src.rpm ]]; then
-        RPMFILE=$(basename ${RPM})
-        echo -n "- [$RPMFILE](http://packages.nethserver.org/nethserver/${REPO_RELEASE}/${REPO_NAME}/x86_64/Packages/$RPMFILE)\n" >> $comment
-    fi
-done
-
-curl -s -X POST \
-    -H "Authorization: Basic ${NETHBOT_GITHUB_TOKEN}" \
-    -H "Content-Type: application/json" \
-    -d "{ \"body\": \"$(< comment)\" }" \
-    "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments"
