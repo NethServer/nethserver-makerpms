@@ -29,7 +29,6 @@ topdir=$(rpm --eval '%_topdir')
 # TRAVIS_TAG
 # TRAVIS_PULL_REQUEST_BRANCH
 # TRAVIS_BRANCH
-# TRAVIS_COMMIT
 # TRAVIS_PULL_REQUEST
 
 IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
@@ -41,10 +40,10 @@ if [[ -n "${TRAVIS_TAG}" ]]; then
     DIST=.ns${NSVER}
 elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     # testing
-    DIST=.${desc_commitn}.g${TRAVIS_COMMIT:0:7}.ns${NSVER}
+    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
 else
     # autobuild
-    DIST=.${desc_commitn}.pr${TRAVIS_PULL_REQUEST}.g${TRAVIS_COMMIT:0:7}.ns${NSVER}
+    DIST=.${desc_commitn}.pr${TRAVIS_PULL_REQUEST}.${desc_commith}.ns${NSVER}
     export SPEC_URLTAG="https://github.com/${TRAVIS_REPO_SLUG}/pull/${TRAVIS_PULL_REQUEST}"
 fi
 

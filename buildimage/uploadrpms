@@ -37,11 +37,11 @@ tmpcmd=$(mktemp)
 trap "rm -f $tmpcmd" EXIT
 
 (
-    spool=$(mktemp -u "${username}.XXXXXX");
+    spool=$(mktemp -u "${username}.${TRAVIS_BUILD_ID:-XXXX}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
     for F in $(find . -name '*.rpm'); do
-        echo "put -p $F";
+        echo "put $F";
     done;
     echo "cd ..";
     echo "rename $spool commit-$spool"

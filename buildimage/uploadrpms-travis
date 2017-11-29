@@ -37,6 +37,9 @@
 # SECRET_URL
 # NETHBOT_GITHUB_TOKEN
 
+SECRET=${SECRET:-${AUTOBUILD_SECRET}}
+SECRET_URL=${SECRET_URL:-${AUTOBUILD_SECRET_URL}}
+
 UPLOAD_DEST=${UPLOAD_DEST:-travisbot@packages.nethserver.org:nscom}
 
 declare -A "versions=(${VERSIONS_PACK})"
@@ -64,7 +67,9 @@ expect << EOF
   expect eof
 EOF
 
-unset SECRET
+unset SECRET SECRET_URL
+
+find $(rpm --eval '%_topdir') -type f -name '*.rpm' | xargs -- rpm -qp --queryformat="\[UPLOAD_SHA1\] %{NVRA} %{SOURCEPACKAGE} %{SHA1HEADER}\n"
 
 uploadrpms "$@" ${UPLOAD_DEST}/${versions[$NSVER]}/${repo_name}
 
