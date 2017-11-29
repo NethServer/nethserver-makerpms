@@ -50,4 +50,4 @@ chown -v makerpms.makerpms \
 
 runuser -u makerpms -- rpmdev-setuptree -d
 
-echo '%url_prefix http://github.com/nethserver' >> /srv/makerpms/.rpmmacros
+echo '%url_prefix http://github.com/NethServer' >> /srv/makerpms/.rpmmacros
