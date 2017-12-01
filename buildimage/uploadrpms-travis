@@ -45,9 +45,7 @@ UPLOAD_DEST=${UPLOAD_DEST:-travisbot@packages.nethserver.org:nscom}
 declare -A "versions=(${VERSIONS_PACK})"
 declare -A "stages=(${STAGES_PACK})"
 
-IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
-
-if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
+if [[ -f ~/.tag-release ]]; then
     repo_name=${stages[${DEST_ID}-updates]}
 elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     repo_name=${stages[${DEST_ID}-testing]}

@@ -35,9 +35,15 @@ IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "
 
 export DIST
 
+# Ensure the tag-release flag is unset:
+rm -f ~/.tag-release
+
 if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
     # updates/tagged release
     DIST=.ns${NSVER}
+    # Set the tag-release flag for uploadrpms-travis script
+    echo "[INFO] set tag-release flag"
+    touch ~/.tag-release
 elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     # testing
     DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
