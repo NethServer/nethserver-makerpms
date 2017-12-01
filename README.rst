@@ -4,6 +4,9 @@ nethserver-makerpms
 
 Build RPMs in a Linux container
 
+.. image:: https://travis-ci.org/NethServer/nethserver-makerpms.svg?branch=master
+    :target: https://travis-ci.org/NethServer/nethserver-makerpms
+
 Usage
 =====
 
