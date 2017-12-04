@@ -19,10 +19,21 @@
 #
 
 FROM centos:7
-COPY entrypoint /
+RUN set -e ; \
+    yum -y --setopt=tsflags=nodocs install http://packages.nethserver.org/nethserver/nethserver-release-7.rpm epel-release ; \
+    yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed openssl expect ; \
+    yum clean all ; \
+    rm -rf /var/cache/yum/*
+
 COPY makerpms makesrpm uploadrpms makerpms-travis uploadrpms-travis /usr/local/bin/
 COPY buildimage /usr/local/sbin/
+RUN useradd -m -d /srv/makerpms -r makerpms
 RUN buildimage
-WORKDIR /srv/makerpms/src
+
+USER makerpms
+WORKDIR /srv/makerpms
+RUN rpmdev-setuptree -d; echo '%url_prefix http://github.com/NethServer' >> /srv/makerpms/.rpmmacros
+
 CMD ["bash"]
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT []
+WORKDIR /srv/makerpms/src

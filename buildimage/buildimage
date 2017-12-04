@@ -22,18 +22,12 @@
 
 set -e
 
-yum -y --setopt=tsflags=nodocs install http://packages.nethserver.org/nethserver/nethserver-release-7.rpm epel-release
-yum -y --setopt=tsflags=nodocs install sudo rpmdevtools yum-utils git nethserver-devtools perl sed openssl expect
-yum clean all
-rm -rf /var/cache/yum/*
+mkdir -v /srv/makerpms/src
 
 echo 'makerpms ALL=NOPASSWD: /usr/bin/yum' > /etc/sudoers.d/10_makerpms
 chmod 440 /etc/sudoers.d/10_makerpms
-chmod -v 755 /entrypoint
-chown -v root.root /entrypoint
 
-useradd -m -d /srv/makerpms -r makerpms
-mkdir -v /srv/makerpms/{src,.ssh}
+mkdir -v /srv/makerpms/.ssh
 chmod -v 700 /srv/makerpms/.ssh
 cat - > /srv/makerpms/.ssh/config <<EOF
 UserKnownHostsFile=/dev/null
@@ -41,13 +35,5 @@ StrictHostKeyChecking=no
 EOF
 touch /srv/makerpms/.ssh/id_rsa
 chmod -v 600 /srv/makerpms/.ssh/config /srv/makerpms/.ssh/id_rsa
-chown -v makerpms.makerpms \
-    /srv/makerpms/src \
-    /srv/makerpms/.ssh \
-    /srv/makerpms/.ssh/config \
-    /srv/makerpms/.ssh/id_rsa \
-    ;
 
-runuser -u makerpms -- rpmdev-setuptree -d
-
-echo '%url_prefix http://github.com/NethServer' >> /srv/makerpms/.rpmmacros
+chown -R -c makerpms:makerpms ~makerpms
