@@ -60,10 +60,6 @@ find ${topdir} \( -type f -o -type l \) -delete
 cp -v ${specfile} ${topdir}/SPECS/${specfile}
 specfile=${topdir}/SPECS/${specfile}
 
-if [[ -n "${SPEC_URLTAG}" ]]; then
-    sed -i $'/^ *URL:/ c \\\nURL: '"${SPEC_URLTAG}" ${specfile}
-fi
-
 if [[ -d .git ]]; then
     echo "[INFO] Generate source tarball with git-archive"
     gitrev=$(git rev-parse ${commit:-HEAD})

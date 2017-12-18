@@ -50,7 +50,6 @@ elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
 else
     # autobuild
     DIST=.${desc_commitn}.pr${TRAVIS_PULL_REQUEST}.${desc_commith}.ns${NSVER}
-    export SPEC_URLTAG="https://github.com/${TRAVIS_REPO_SLUG}/pull/${TRAVIS_PULL_REQUEST}"
 fi
 
 exec makerpms "$@"
