@@ -60,10 +60,11 @@ find ${topdir} \( -type f -o -type l \) -delete
 cp -v ${specfile} ${topdir}/SPECS/${specfile}
 specfile=${topdir}/SPECS/${specfile}
 
-if [[ -d .git ]]; then
+source0=$(basename $(spectool -s 0 ${specfile} | cut -f 2 -d ' '))
+
+if [[ -d ".git" ]] && ! [[ ${source0} = http://* || ${source0} = https://* || ${source0} = ftp://* ]]; then
     echo "[INFO] Generate source tarball with git-archive"
     gitrev=$(git rev-parse ${commit:-HEAD})
-    source0=$(basename $(spectool -s 0 ${specfile} | cut -f 2 -d ' '))
     prefix=$(basename ${source0} .tar.gz)
     git archive --format=tar --prefix=${prefix}/ ${gitrev} | (
         arcdir=$(mktemp -d)
