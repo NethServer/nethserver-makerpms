@@ -38,9 +38,6 @@
 # SECRET_URL
 # NETHBOT_GITHUB_TOKEN
 
-SECRET=${SECRET:-${AUTOBUILD_SECRET}}
-SECRET_URL=${SECRET_URL:-${AUTOBUILD_SECRET_URL}}
-
 if [[ "${UPLOAD_DEST}" == *=* ]]; then
     # use old variable
     echo "[NOTICE] Replace UPLOAD_DEST environment variable with ENDPOINTS_PACK in .travis.yml"
@@ -50,15 +47,14 @@ else
     declare -A "endpoints=(${ENDPOINTS_PACK})"
 fi
 
-declare -A "versions=(${VERSIONS_PACK})"
-declare -A "stages=(${STAGES_PACK})"
-
 if [[ -f ~/.tag-release ]]; then
     stage=updates
 elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
     stage=testing
 else
     stage=autobuild
+    SECRET=${AUTOBUILD_SECRET}
+    SECRET_URL=${AUTOBUILD_SECRET_URL}
 fi
 
 # Clean up the private key and shutdown agent
