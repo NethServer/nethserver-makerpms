@@ -62,22 +62,25 @@ specfile=${topdir}/SPECS/${specfile}
 
 source0=$(spectool -s 0 ${specfile} | cut -f 2 -d ' ')
 
-if [[ -d ".git" ]] && ! [[ ${source0} = http://* || ${source0} = https://* || ${source0} = ftp://* ]]; then
-    echo "[INFO] Generate source tarball with git-archive"
-    source0=$(basename ${source0})
-    gitrev=$(git rev-parse ${commit:-HEAD})
-    prefix=$(basename ${source0} .tar.gz)
-    git archive --format=tar --prefix=${prefix}/ ${gitrev} | (
-        arcdir=$(mktemp -d)
-        cd $arcdir
-        tar xf -
-        tar -c -z --exclude-vcs --exclude='.gitignore' -f ${topdir}/SOURCES/${source0} ${prefix}
-        rm -rf $arcdir
-    )
+if [[ -d ".git" ]]; then
+    if [[ ${source0} != http://* && ${source0} != https://* && ${source0} != ftp://* ]]; then
+        echo "[INFO] Generate source tarball with git-archive ${source0}"
+        source0=$(basename ${source0})
+        gitrev=$(git rev-parse ${commit:-HEAD})
+        prefix=$(basename ${source0} .tar.gz)
+        git archive --format=tar --prefix=${prefix}/ ${gitrev} | (
+            arcdir=$(mktemp -d)
+            cd $arcdir
+            tar xf -
+            tar -c -z --exclude-vcs --exclude='.gitignore' -f ${topdir}/SOURCES/${source0} ${prefix}
+            rm -rf $arcdir
+        )
+    fi
+
     IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
     if [[ -n "${desc_commitn}" ]]; then
         tmplog=$(mktemp)
-        echo "[INFO] Write temporary %changelog in ${specfile}"
+        echo "[INFO] Write ${desc_commitn} temporary log entries in ${specfile} %changelog section"
         git log -n ${desc_commitn} --format="* %cd %aN <%aE> - %h%n- %s%d%n%w(68,2,2)%b%n" --date=local | sed -r 's/[0-9]+:[0-9]+:[0-9]+ //; s/%/%%/' >> ${tmplog}
         sed -i $'/^%changelog/ {\nr '${tmplog}$'\nq\n}' ${specfile}
         rm -f ${tmplog}
