@@ -8,7 +8,7 @@ License:        GPLv3
 URL:            http://www.nethserver.org
 Source0:        %{name}-%{version}.tar.gz
 
-Requires: buildah
+Requires: podman
 
 %description
 Provides build automation for NethServer packages based on Linux containers
@@ -20,14 +20,15 @@ Provides build automation for NethServer packages based on Linux containers
 
 %install
 rm -rf %{buildroot}
-mkdir -p  %{buildroot}/%{_sbindir}
-install -vp src/sbin/* %{buildroot}/%{_sbindir}
+mkdir -p  %{buildroot}/%{_bindir}
+find $(pwd)
+install -vp src/bin/* %{buildroot}/%{_bindir}
 
 %files
 %defattr(-,root,root,-)
-%{_sbindir}/makerpms
-%{_sbindir}/makesrpm
-%{_sbindir}/uploadrpms
+%{_bindir}/makerpms
+%{_bindir}/makesrpm
+%{_bindir}/uploadrpms
 %doc LICENSE
 
 %changelog

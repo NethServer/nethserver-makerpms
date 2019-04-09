@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2017 Nethesis S.r.l.
+# Copyright (C) 2016 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -20,13 +20,29 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e
+dest=$1;
+shift;
 
-builder=$(buildah from nethserver/makerpms)
-mnt=$(buildah mount $builder)
-buildah run -v $PWD:/srv/makerpms/src:ro $builder -- /usr/local/bin/makerpms -s \*.spec
-mkdir upload
-for RPM in $(find $mnt/srv/makerpms/rpmbuild -type f -name '*.rpm'); do
-    cp -f $RPM upload/
-done
-buildah rm $builder
+if [[ -z "${dest}" || $# == 0 ]]; then
+    exec 1>&2
+
+    echo "Usage:
+    $0 <destination> file1.rpm [file2.rpm ...]
+
+    <destination> must be a valid sftp [user@]host[:dir[/]] format
+
+"
+    exit 1
+fi
+
+( 
+    spool=$(mktemp -u "${USER:-upload}.XXXXXX");
+    echo "mkdir ${spool}";
+    echo "cd ${spool}";
+    for F in $*;
+    do
+        echo "put $F";
+    done;
+    echo "cd ..";
+    echo "rename ${spool} commit-${spool}" 
+) | sftp -q -p -b - ${dest} | grep --color=auto '^sftp> put'
