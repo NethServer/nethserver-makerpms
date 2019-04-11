@@ -21,14 +21,17 @@ Provides build automation for NethServer packages based on Linux containers
 %install
 rm -rf %{buildroot}
 mkdir -p  %{buildroot}/%{_bindir}
+mkdir -p  %{buildroot}/%{_datarootdir}/%{name}/
 find $(pwd)
 install -vp src/bin/* %{buildroot}/%{_bindir}
+install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 
 %files
 %defattr(-,root,root,-)
 %{_bindir}/makerpms
 %{_bindir}/makesrpm
 %{_bindir}/uploadrpms
+%{_datarootdir}/%{name}/
 %doc LICENSE
 
 %changelog
