@@ -33,6 +33,7 @@ install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 %{_bindir}/uploadrpms
 %{_datarootdir}/%{name}/
 %doc LICENSE
+%doc README.rst
 
 %changelog
 * Fri Nov 10 2017 Davide Principi <davide.principi@nethesis.it> - 0.0.0-1
