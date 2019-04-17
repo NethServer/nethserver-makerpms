@@ -1,0 +1,73 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+set -e
+
+export NSVER=${NSVER:-7} DIST
+
+if grep -q -E 'BuildArch:\s*noarch' "${@}"; then
+    image=nethserver/makerpms:${NSVER}
+else
+    image=nethserver/makerpms:buildsys${NSVER}
+fi
+
+IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
+
+if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
+    # updates/tagged release
+    DIST=.ns${NSVER}
+else
+    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
+fi
+
+# Image max age is one week by default:
+image_maxage=${image_maxage:-604800}
+
+# Pull a fresh makrpms image if it's missing or older than max age:
+image_ts=$(date '+%s'  -d "$(podman image inspect "${image}" -f '{{ .Created }}' | sed s/\+0000//)")
+if [[ $? != 0 ]] || (( image_ts + ${image_maxage} < $(date +%s) )); then
+    podman pull "${image}"
+fi
+
+container_id="makerpms${NSVER}-${image_ts:-na}-$$"
+
+cachevol=makerpms-yum-cache
+
+if ! podman volume inspect ${cachevol} &>/dev/null; then
+    podman volume create ${cachevol} >/dev/null
+fi
+
+podman run \
+    --name "${container_id}" \
+    --security-opt label=disable \
+    --volume $PWD:/srv/makerpms/src:ro \
+    --volume ${cachevol}:/var/cache/yum \
+    --env NSVER \
+    --env DIST \
+    --tty \
+    --interactive \
+    nethserver/makerpms:${NSVER:-7} \
+    ${command:-makerpms} -s "$@"
+
+sync
+podman export "${container_id}" | tar -x -v --xform='s#^.+/##x' -f - srv/makerpms/rpmbuild/{S,}RPMS
+podman rm "${container_id}"
