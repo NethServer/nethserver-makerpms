@@ -50,10 +50,17 @@ fi
 
 container_id="makerpms${NSVER}-${image_ts:-na}-$$"
 
+cachevol=makerpms-yum-cache
+
+if ! podman volume inspect ${cachevol} &>/dev/null; then
+    podman volume create ${cachevol} >/dev/null
+fi
+
 podman run \
     --name "${container_id}" \
     --security-opt label=disable \
     --volume $PWD:/srv/makerpms/src:ro \
+    --volume ${cachevol}:/var/cache/yum \
     --env NSVER \
     --env DIST \
     --tty \

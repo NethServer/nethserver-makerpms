@@ -38,8 +38,13 @@ If the requirements are met, change directory to the repository root then run ::
 Optimizations
 -------------
 
-The ``/var/yum/cache/`` directory could be volume-mounted across builds to
-speed up YUM downloads.
+To speed up the build process, the YUM cache directory contents are preserved.
+Container instances share the named Podman volume ``makerpms-yum-cache``.
+
+To clear the YUM cache run ::
+
+    podman volume rm makerpms-yum-cache
+
 
 Container images
 ----------------
