@@ -1,4 +1,5 @@
-===================
+.. _nethserver-makerpms-module:
+
 nethserver-makerpms
 ===================
 
@@ -8,12 +9,22 @@ RPM builds by Linux containers
     :target: https://travis-ci.org/NethServer/nethserver-makerpms
 
 
-This is a simple RPM build environment based on CentOS 7 official Docker image.
+This is a simple RPM build environment based on the official CentOS Docker image.
 
 It can build RPMs in the travis-ci.org environment, or on your local
 Fedora 29+ machine. CentOS rootless builds seem to not (still) work: as such
-you must be root to make it work on CentOS 7.
+you must be root to make it work on NethServer 7.
 
+Installation
+------------
+
+On Fedora 29+ ::
+
+  $ sudo dnf install http://packages.nethserver.org/nethserver/7.6.1810/updates/x86_64/Packages/nethserver-makerpms-1.0.0-1.ns7.noarch.rpm
+
+On NethServer 7 ::
+
+  # yum install nethserver-makerpms
 
 Build RPMs
 ----------
@@ -35,6 +46,10 @@ If the requirements are met, change directory to the repository root then run ::
 
   makerpms *.spec
 
+To build a NethServer 6 RPM pass the ``NSVER`` environment variable to ``makerpms`` ::
+
+  NSVER=6 makerpms *.spec
+
 Optimizations
 -------------
 
@@ -49,15 +64,17 @@ To clear the YUM cache run ::
 Container images
 ----------------
 
-The container images are build every week and are available at
+The container images are built every week and are available at
 https://hub.docker.com/r/nethserver/makerpms.
 
-* ``nethserver/makerpms:7`` is the default image, for noarch builds
-* ``nethserver/makerpms:buildsys7`` is the image for x86_64 builds
+* ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
+* ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds
 
 To build the image locally run ::
 
   cd /usr/share/nethserver-makerpms/
-  podman build .
+  podman build -f Dockerfile-7 .
 
 For more info about the image builds look at ``travis/build-container.sh``.
+
+Images for NethServer 6 are available as well: just replace ``7`` with ``6``.
