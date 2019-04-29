@@ -5,12 +5,14 @@ services:
 branches:
     only:
         - master
+matrix:
+    include:
+        - env: NSVER=7 DOCKER_IMAGE=nethserver/makerpms:${NSVER}
+        - env: NSVER=6 DOCKER_IMAGE=nethserver/makerpms:${NSVER}
 env:
     global:
         - DEST_ID=core
-        - NSVER=7
         - NSLATEST=7
-        - DOCKER_IMAGE=nethserver/makerpms:${NSVER}
         - >
             EVARS="
             -e DEST_ID

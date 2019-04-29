@@ -1,6 +1,7 @@
 set -e
 
-docker build -t ${DOCKER_IMAGE} buildimage
+pushd buildimage/
+docker build -f Dockerfile-${NSVER} -t ${DOCKER_IMAGE} .
 docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
 docker push ${DOCKER_IMAGE}
 if [[ "${NSLATEST}" == "${NSVER}" ]]; then
@@ -11,3 +12,4 @@ docker run -ti --name buildsys ${DOCKER_IMAGE} sudo yum install -y @buildsys-bui
 docker commit buildsys nethserver/makerpms:buildsys${NSVER}
 docker push nethserver/makerpms:buildsys${NSVER}
 docker logout
+popd
