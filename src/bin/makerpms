@@ -57,6 +57,7 @@ if ! podman volume inspect ${cachevol} &>/dev/null; then
 fi
 
 podman run \
+    --hostname b$$.$(hostname) \
     --name "${container_id}" \
     --security-opt label=disable \
     --volume $PWD:/srv/makerpms/src:ro \
