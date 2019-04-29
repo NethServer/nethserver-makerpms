@@ -1,0 +1,161 @@
+#!/bin/bash -e
+
+#
+# Copyright (C) 2015 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+set -e
+
+issuetracker_url=${issuetracker_url:-http://dev.nethserver.org}
+export LANG=C
+unset ${!LC_*}
+
+function exit_help ()
+{
+   echo "Usage: $(basename $0) [-h] [-k KEYID] [-T <x.y.z>] [<file>.spec]" 1>&2
+   exit 1
+}
+
+git_tag_opts=
+
+while getopts "T:k:h" opt; do
+    case $opt in
+	h)
+	    exit_help
+	    ;;
+        k)  # gpg sign git tag
+            git_tag_opts+="-s -u $OPTARG"
+	    ;;
+	T)  # Add rpm makefile variable definition
+	    tag="$OPTARG"
+	    ;;
+	\?) # Print help message and exit
+	    exit_help
+	    ;;
+    esac
+done
+
+# Eat all the options:
+shift $(($OPTIND - 1)) || exit_help
+
+if [ -z "${tag}" ]; then
+    SHOW_ONLY="1"
+fi
+
+
+git_user_name=$(git config --get user.name)
+git_user_email=$(git config --get user.email)
+editor=${EDITOR:-$(git config --get core.editor || echo 'vi')}
+changelog_timestamp=$(date +"%a %b %d %Y")
+spec_file=(*.spec)
+spec_file=${1:-${spec_file[0]}}
+
+gitdesc=($(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null | tr '-' ' '))
+last_release=
+commitn=
+
+if [ "${#gitdesc[@]}" -gt 2 ]; then
+    commitn=${gitdesc[$((${#gitdesc[@]} - 2))]}
+    commitv=${gitdesc[((${#gitdesc[@]} - 1))]}
+    dist="${commitn}.${commitv}.${dist}"
+    last_release=${gitdesc[0]}
+    echo $(basename $0) "[INFO] git describe: ${gitdesc[*]}" >&2               
+else
+    echo "[WARNING] Initial tag not found. Starting from the first commit."
+fi
+
+if git describe --tags --dirty 2>/dev/null | grep -q dirty ; then
+    echo "[ERROR] Working directory contains modified files. Commit changes at first."
+    exit 3
+fi
+
+if [ "${last_release:-N/A}" = "${tag}" ]; then
+    echo "[ERROR] The new tag is equal to the previous one" 1>&2
+    exit 4
+fi
+
+tmp_changelog=$(mktemp "$(dirname ${spec_file})/gitlogXXXXXXXX.tmp")
+
+function cleanup_temporary_files {
+    rm -f ${tmp_changelog}
+}
+
+trap cleanup_temporary_files EXIT SIGTERM
+
+# read git changelog
+git_changelog=$(git --no-pager log --format='%s' ${commitn:+-n ${commitn}} )
+
+# prepare the header line
+echo "* ${changelog_timestamp} ${git_user_name} <${git_user_email}> - ${tag:-NEWTAG}-1" >> ${tmp_changelog}
+
+# fetch issue references and prepare the spec changelog entries:
+git --no-pager log --format='%B' ${commitn:+-n ${commitn}} | issue-refs >> ${tmp_changelog} 
+
+echo -n "
+#
+# Lines beginning with '#' will be discarded.
+#
+# git log
+#
+" >> ${tmp_changelog}
+echo "${git_changelog}" | sed 's/^/ - /' | fold -s | sed 's/^/\# /' >> ${tmp_changelog}
+
+if [ -n "${SHOW_ONLY}" ]; then
+    echo -e "\n\n"
+    cat ${tmp_changelog}
+    echo  "
+Specify -T <TAG> (>${last_release:-0.0.0})
+"
+    exit 0
+fi
+
+#
+# Edit the changelog text
+#
+${editor} ${tmp_changelog}
+
+# strip commented and empty lines:
+sed -r -i -e '/^(#|$)/ d' ${tmp_changelog}
+echo "" >> ${tmp_changelog}
+
+# append changelog entry to spec file
+sed -i -e "/^%changelog/ r ${tmp_changelog}" ${spec_file}
+
+# replace Version and Release tags
+sed -i -e "/^Version:/c\\Version: ${tag}" ${spec_file}
+sed -i -e "/^Release:/c\\Release: 1%{?dist}" ${spec_file}
+
+# commit spec file changes
+if ! git commit -m "Release ${tag}" ${spec_file}; then
+    exit 5
+fi
+  
+# add git tag (rollback working copy if fails..)
+if ! sed -e "1 {s/^.*$/Release ${tag}/; G;}"  ${tmp_changelog} | git tag ${git_tag_opts} "${tag}" -F -; then
+    git reset --hard HEAD^
+    exit 6
+fi
+
+# show what has been done:
+git --no-pager log --decorate -p -n 1
+
+
+
+
+
