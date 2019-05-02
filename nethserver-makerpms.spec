@@ -1,6 +1,6 @@
 Name:           nethserver-makerpms
-Version:        0.0.0
-Release:        1%{?dist}
+Version: 1.0.0
+Release: 1%{?dist}
 Summary:        RPM build automation scripts for NethServer packages
 BuildArch:      noarch
 
@@ -37,6 +37,9 @@ install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 %doc README.rst
 
 %changelog
+* Thu May 02 2019 Davide Principi <davide.principi@nethesis.it> - 1.0.0-1
+- nethserver-makerpms Podman builds. First release
+
 * Fri Nov 10 2017 Davide Principi <davide.principi@nethesis.it> - 0.0.0-1
 - Initial alpha version
 
