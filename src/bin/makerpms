@@ -43,7 +43,7 @@ fi
 image_maxage=${image_maxage:-604800}
 
 # Pull a fresh makrpms image if it's missing or older than max age:
-image_ts=$(date '+%s'  -d "$(podman image inspect "${image}" -f '{{ .Created }}' | sed s/\+0000//)")
+image_ts=$(date '+%s'  -d "$(podman image inspect "${image}" -f '{{ .Created }}' 2>/dev/null | sed s/\+0000//)")
 if [[ $? != 0 ]] || (( image_ts + ${image_maxage} < $(date +%s) )); then
     podman pull "${image}"
 fi
@@ -66,7 +66,7 @@ podman run \
     --env DIST \
     --tty \
     --interactive \
-    nethserver/makerpms:${NSVER:-7} \
+    ${image} \
     ${command:-makerpms} -s "$@"
 
 sync
