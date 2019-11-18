@@ -32,6 +32,7 @@ install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 %{_bindir}/makesrpm
 %{_bindir}/uploadrpms
 %{_bindir}/releasetag
+%{_bindir}/issue-refs
 %{_datarootdir}/%{name}/
 %doc LICENSE
 %doc README.rst
