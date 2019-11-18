@@ -29,8 +29,8 @@ import os
 redmine_refs = {}
 github_refs = {}
 
-github_match = re.compile(ur'\b([^/\s]+)/([^#\s]+)#(\d+)', re.IGNORECASE)
-redmine_match = re.compile(ur'\bRefs\s+#(\d+)', re.IGNORECASE)
+github_match = re.compile(r'\b([^/\s]+)/([^#\s]+)#(\d+)', re.IGNORECASE)
+redmine_match = re.compile(r'\bRefs\s+#(\d+)', re.IGNORECASE)
 
 for line in sys.stdin:
     redmine_refs.update(dict.fromkeys(re.findall(redmine_match, line)))
@@ -43,15 +43,15 @@ for issue_id in redmine_refs.iterkeys():
         if not response.ok:
             raise RuntimeError("%s: %s: " % (response.status_code, response.text))
         issue = response.json()['issue']
-        print "- %s - %s #%s [%s]%s" % ( \
+        print("- %s - %s #%s [%s]%s" % ( \
             issue["subject"], \
             issue["tracker"]["name"], \
             issue["id"], \
             issue["project"]["name"], \
             "" if issue["status"]["name"] in ["CLOSED", "VERIFIED"] \
                 else " !!%s" % issue["status"]["name"] \
-        )
-    except Exception, e:
+        ))
+    except Exception as e:
         sys.stderr.write("[ERROR] %s\n" % str(e))
 
 try:
@@ -70,7 +70,7 @@ for issue_org, issue_repo, issue_id in github_refs:
         if not response.ok:
             raise RuntimeError("%s: %s: " % (response.status_code, response.text))
         issue = response.json()
-        print "- %s - %s%s/%s#%s%s" % ( \
+        print("- %s - %s%s/%s#%s%s" % ( \
             issue['title'], \
             "Bug " if filter(lambda l: l["name"] == "bug", issue["labels"]) else "", \
             issue_org,
@@ -78,6 +78,6 @@ for issue_org, issue_repo, issue_id in github_refs:
             issue['number'], \
             "" if filter(lambda l: l["name"] == "verified", issue["labels"]) \
                else " !! INCOMPLETE" \
-        )
-    except Exception, e:
+        ))
+    except Exception as e:
         sys.stderr.write("[ERROR] %s\n" % str(e))
