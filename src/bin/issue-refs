@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #
 # Copyright (C) 2016 Nethesis S.r.l.
@@ -36,7 +36,7 @@ for line in sys.stdin:
     redmine_refs.update(dict.fromkeys(re.findall(redmine_match, line)))
     github_refs.update(dict.fromkeys(re.findall(github_match, line)))
 
-for issue_id in redmine_refs.iterkeys():
+for issue_id in redmine_refs.keys():
     try:
         url = 'http://dev.nethserver.org/issues/%s.json' % issue_id
         response = requests.get(url, headers={'User-Agent': None})
@@ -72,11 +72,11 @@ for issue_org, issue_repo, issue_id in github_refs:
         issue = response.json()
         print("- %s - %s%s/%s#%s%s" % ( \
             issue['title'], \
-            "Bug " if filter(lambda l: l["name"] == "bug", issue["labels"]) else "", \
+            "Bug " if list(filter(lambda l: l["name"] == "bug", issue["labels"])) else "", \
             issue_org,
             issue_repo,
             issue['number'], \
-            "" if filter(lambda l: l["name"] == "verified", issue["labels"]) \
+            "" if list(filter(lambda l: l["name"] == "verified", issue["labels"])) \
                else " !! INCOMPLETE" \
         ))
     except Exception as e:
