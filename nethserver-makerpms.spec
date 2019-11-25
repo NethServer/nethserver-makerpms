@@ -9,6 +9,7 @@ URL:            http://www.nethserver.org
 Source0:        %{name}-%{version}.tar.gz
 
 Requires: podman
+Requires: python3, python3-requests
 
 %description
 Provides build automation for NethServer packages based on Linux containers
@@ -32,6 +33,7 @@ install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 %{_bindir}/makesrpm
 %{_bindir}/uploadrpms
 %{_bindir}/releasetag
+%{_bindir}/issue-refs
 %{_datarootdir}/%{name}/
 %doc LICENSE
 %doc README.rst
