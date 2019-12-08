@@ -24,6 +24,20 @@ set -e
 
 export NSVER=${NSVER:-7} DIST
 
+if [ -z "$1" ]; then
+    exec >&2
+    echo "Build RPMs with podman"
+    echo ""
+    echo "Usage: " 
+    echo "    " $(basename $0) "filename.spec"
+    echo ""
+    echo "Sensible to the following environment variables:"
+    echo " - NSVER (${NSVER}) # NethServer version"
+    echo " - DEV (.$(whoami)) # developer name"
+    echo ""
+    exit 1
+fi
+
 if grep -q -E 'BuildArch:\s*noarch' "${@}"; then
     image=nethserver/makerpms:${NSVER}
 else
@@ -34,9 +48,9 @@ IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "
 
 if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
     # updates/tagged release
-    DIST=.ns${NSVER}
+    DIST=.ns${NSVER}${DEV}
 else
-    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
+    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}${DEV}
 fi
 
 # Image max age is one week by default:
