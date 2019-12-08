@@ -105,7 +105,7 @@ git_changelog=$(git --no-pager log --format='%s' ${commitn:+-n ${commitn}} )
 echo "* ${changelog_timestamp} ${git_user_name} <${git_user_email}> - ${tag:-NEWTAG}-1" >> ${tmp_changelog}
 
 # fetch issue references and prepare the spec changelog entries:
-git --no-pager log --format='%B' ${commitn:+-n ${commitn}} | issue-refs >> ${tmp_changelog} 
+git --no-pager log --format='%B' ${commitn:+-n ${commitn}} | issuerefs >> ${tmp_changelog} 
 
 echo -n "
 #
