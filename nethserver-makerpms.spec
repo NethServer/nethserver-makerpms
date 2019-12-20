@@ -1,5 +1,5 @@
 Name:           nethserver-makerpms
-Version: 1.1.0
+Version: 1.1.1
 Release: 1%{?dist}
 Summary:        RPM build automation scripts for NethServer packages
 BuildArch:      noarch
@@ -39,6 +39,10 @@ install -vp buildimage/* %{buildroot}/%{_datarootdir}/%{name}
 %doc README.rst
 
 %changelog
+* Fri Dec 20 2019 Davide Principi <davide.principi@nethesis.it> - 1.1.1-1
+- Fix conflict file issue-refs with nethserver-mock (#8)
+- Developer name environment variable (#7)
+
 * Mon Nov 25 2019 Davide Principi <davide.principi@nethesis.it> - 1.1.0-1
 - Python 3 compatibility (i.e. fc31...)
 
