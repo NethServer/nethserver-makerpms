@@ -35,7 +35,7 @@ function help {
 ' >&2
 }
 
-while getopts "s:c:" opt; do
+while getopts ":s:c:" opt; do
     case $opt in
     s)
         specfile=$OPTARG
@@ -45,12 +45,12 @@ while getopts "s:c:" opt; do
         commit=$OPTARG
         [ -z "${commit}" ] && exit_error "No commit given"
         ;;
-    \?)
-        help
-        exit_error "Invalid option: -$OPTARG"
+    *)
+        break
         ;;
     esac
 done
+shift $((OPTIND-1))
 
 topdir=$(rpm --eval '%_topdir')
 
@@ -106,4 +106,4 @@ if [[ -f SHA1SUM ]]; then
     popd
 fi
 
-exec rpmbuild -D "dist ${DIST:-.nsX}" -bs ${topdir}/SPECS/*.spec
+exec rpmbuild -D "dist ${DIST:-.nsX}" -bs ${topdir}/SPECS/*.spec "$@"

@@ -33,7 +33,7 @@ if [ -z "$1" ]; then
     echo "Build RPMs with podman"
     echo ""
     echo "Usage: " 
-    echo "    " $(basename $0) "filename.spec"
+    echo "    " $(basename $0) "filename.spec [args]..."
     echo ""
     echo "Sensible to the following environment variables:"
     echo " - NSVER (${NSVER}) # NethServer version"
@@ -42,7 +42,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-if grep -q -E 'BuildArch:\s*noarch' "${@}"; then
+if grep -q -E 'BuildArch:\s*noarch' "${1}"; then
     image=nethserver/makerpms:${NSVER}
 else
     image=nethserver/makerpms:buildsys${NSVER}
@@ -83,7 +83,7 @@ podman run \
     --tty \
     --interactive \
     ${image} \
-    ${command:-makerpms} -s "$@"
+    ${command:-makerpms -s} "${@}"
 
 sync
 podman export "${container_id}" | tar -x -v --xform='s#^.+/##x' -f - srv/makerpms/rpmbuild/{S,}RPMS

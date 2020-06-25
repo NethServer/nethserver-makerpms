@@ -20,5 +20,5 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-export command=makesrpm
+export command="makesrpm -s"
 exec makerpms "${@}"

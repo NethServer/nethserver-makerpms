@@ -30,8 +30,22 @@ if [[ ${topdir}/SRPMS/*.src.rpm == "${topdir}/SRPMS/*.src.rpm" ]]; then
     fi
 fi
 
+# Ignore arguments for makesrpm
+while getopts ":s:c:" opt; do
+    case $opt in
+    s)
+        ;;
+    c)
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+
 echo '[INFO] Installing build deps...'
 sudo yum install -y --setopt=tsflags=nodocs $(rpm -qp --requires ${topdir}/SRPMS/*.src.rpm)
 
 echo '[INFO] Rebuild ' ${topdir}/SRPMS/*.src.rpm
-exec rpmbuild -D "dist ${DIST:-.ns7}" --rebuild ${topdir}/SRPMS/*.src.rpm
+exec rpmbuild -D "dist ${DIST:-.ns7}" --rebuild ${topdir}/SRPMS/*.src.rpm "$@"
