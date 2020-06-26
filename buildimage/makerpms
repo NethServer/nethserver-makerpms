@@ -36,6 +36,9 @@ if [[ ${topdir}/SRPMS/*.src.rpm == "${topdir}/SRPMS/*.src.rpm" ]]; then
     fi
 fi
 
+# Skip the .spec file argument
+shift
+
 echo '[INFO] Installing build deps...'
 PATH=/usr/bin sudo yum install -y --setopt=tsflags=nodocs ${YUM_ARGS} $(rpm -qp --requires ${topdir}/SRPMS/*.src.rpm)
 
