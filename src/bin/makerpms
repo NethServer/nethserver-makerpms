@@ -36,13 +36,16 @@ if [ -z "$1" ]; then
     echo "    " $(basename $0) "filename.spec [args]..."
     echo ""
     echo "Sensible to the following environment variables:"
-    echo " - NSVER (${NSVER}) # NethServer version"
-    echo " - DIST (${DIST}) # Package DIST suffix"
+    echo " - NSVER (${NSVER})   # NethServer version"
+    echo " - DIST (${DIST})     # Package DIST suffix"
+    echo " - IMAGE (${IMAGE})   # Override the builder image"
     echo ""
     exit 1
 fi
 
-if grep -q -E 'BuildArch:\s*noarch' "${1}"; then
+if [[ -n "${IMAGE}" ]]; then
+    image="${IMAGE}"
+elif grep -q -E 'BuildArch:\s*noarch' "${1}"; then
     image=nethserver/makerpms:${NSVER}
 else
     image=nethserver/makerpms:buildsys${NSVER}
@@ -83,8 +86,13 @@ podman run \
     --tty \
     --interactive \
     ${image} \
-    ${command:-makerpms -s} "${@}"
+    ${command:-makerpms} "${@}"
 
 sync
 podman export "${container_id}" | tar -x -v --xform='s#^.+/##x' -f - srv/makerpms/rpmbuild/{S,}RPMS
-podman rm "${container_id}"
+
+if [[ "${command}" == "makerpms" || "${command}" == "makesrpm" ]]; then
+    podman rm "${container_id}"
+else
+    echo "[WARNING] the container has not been removed. Run 'podman rm ${container_id}' to drop it."
+fi
