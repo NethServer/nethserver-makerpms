@@ -22,7 +22,6 @@
 
 # Sanitize arguments with new call style
 if [[ $1 == "-s" ]]; then
-    echo "[WARNING] the -s flag is no more required. Use '$0 filename.spec [arg]...' instead." 1>&2
     shift
 fi
 
