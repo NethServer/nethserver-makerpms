@@ -59,6 +59,11 @@ It is possible to override the builder command, with the ``COMMAND`` environment
   $ COMMAND="whoami" makerpms *.spec
   makerpms
 
+Additional arguments can be passed to YUM before starting the binary build, to fetch dependencies
+not tracked by ``BuildRequires``, enable additional repositories and so on... ::
+
+  $ YUM_ARGS="--enablerepo=nethserver-testing" makerpms *.spec
+
 
 Optimizations
 -------------

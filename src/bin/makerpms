@@ -22,7 +22,7 @@
 
 set -e
 
-export NSVER=${NSVER:-7} DIST COMMAND=${COMMAND:-makerpms}
+export NSVER=${NSVER:-7} DIST COMMAND=${COMMAND:-makerpms} YUM_ARGS
 
 if [[ -z ${DIST} ]]; then
     DIST=.ns${NSVER}
@@ -40,6 +40,7 @@ if [ -z "$1" ]; then
     echo " - DIST (${DIST}) # Package DIST suffix"
     echo " - IMAGE # Override the builder image"
     echo " - COMMAND (${COMMAND:-makerpms}) # Override the builder command"
+    echo " - YUM_ARGS # Extra arguments for YUM, to set up the packages in the builder image"
     echo ""
     exit 1
 fi
@@ -84,6 +85,7 @@ podman run \
     --volume ${cachevol}:/var/cache/yum \
     --env NSVER \
     --env DIST \
+    --env YUM_ARGS \
     --tty \
     --interactive \
     ${image} \
