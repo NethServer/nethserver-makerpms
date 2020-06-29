@@ -3,7 +3,7 @@ set -e
 docker run -ti --name makerpms ${EVARS} \
     --hostname b${TRAVIS_BUILD_NUMBER}.nethserver.org \
     --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} \
-    makerpms-travis -s *.spec
+    makerpms-travis *.spec
 
 docker commit makerpms nethserver/build
 
