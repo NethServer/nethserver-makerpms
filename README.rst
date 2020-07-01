@@ -18,9 +18,9 @@ you must be root to make it work on NethServer 7.
 Installation
 ------------
 
-On Fedora 29+ ::
+On Fedora 31+ ::
 
-  $ sudo dnf install http://packages.nethserver.org/nethserver/7.6.1810/updates/x86_64/Packages/nethserver-makerpms-1.0.0-1.ns7.noarch.rpm
+  $ sudo dnf install http://packages.nethserver.org/nethserver/7.8.2003/updates/x86_64/Packages/nethserver-makerpms-1.2.0-1.ns7.noarch.rpm
 
 On NethServer 7 ::
 
@@ -44,11 +44,26 @@ during the build.
 
 If the requirements are met, change directory to the repository root then run ::
 
-  makerpms *.spec
+  $ makerpms *.spec
 
 To build a NethServer 6 RPM pass the ``NSVER`` environment variable to ``makerpms`` ::
 
-  NSVER=6 makerpms *.spec
+  $ NSVER=6 makerpms *.spec
+
+If you have a custom or development builder image to test, set the ``IMAGE`` environment variable, e.g.: ::
+
+  $ IMAGE=me/myimage:test makerpms *.spec
+
+It is possible to override the builder command, with the ``COMMAND`` environment variable ::
+
+  $ COMMAND="whoami" makerpms *.spec
+  makerpms
+
+Additional arguments can be passed to YUM before starting the binary build, to fetch dependencies
+not tracked by ``BuildRequires``, enable additional repositories and so on... ::
+
+  $ YUM_ARGS="--enablerepo=nethserver-testing" makerpms *.spec
+
 
 Optimizations
 -------------
@@ -58,7 +73,7 @@ Container instances share the named Podman volume ``makerpms-yum-cache``.
 
 To clear the YUM cache run ::
 
-    podman volume rm makerpms-yum-cache
+  $ podman volume rm makerpms-yum-cache
 
 
 Container images
@@ -69,6 +84,10 @@ https://hub.docker.com/r/nethserver/makerpms.
 
 * ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
 * ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds
+* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds 
+  with GCC 9 (devtoolset-9 from SCLo), then run makerpms in a SCLo environment, e.g. : ::
+
+    $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
 
 To build the image locally run ::
 

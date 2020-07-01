@@ -20,6 +20,11 @@
 # along with NethServer.  If not, see COPYING.
 #
 
+# Sanitize arguments with new call style
+if [[ $1 == "-s" ]]; then
+    shift
+fi
+
 topdir=$(rpm --eval '%_topdir')
 
 # Run makesrpm first, if src RPM is not available:
@@ -30,22 +35,11 @@ if [[ ${topdir}/SRPMS/*.src.rpm == "${topdir}/SRPMS/*.src.rpm" ]]; then
     fi
 fi
 
-# Ignore arguments for makesrpm
-while getopts ":s:c:" opt; do
-    case $opt in
-    s)
-        ;;
-    c)
-        ;;
-    *)
-        break
-        ;;
-    esac
-done
-shift $((OPTIND-1))
+# Skip the .spec file argument
+shift
 
 echo '[INFO] Installing build deps...'
-PATH=/usr/bin sudo yum install -y --setopt=tsflags=nodocs $(rpm -qp --requires ${topdir}/SRPMS/*.src.rpm)
+PATH=/usr/bin sudo yum install -y --setopt=tsflags=nodocs ${YUM_ARGS} $(rpm -qp --requires ${topdir}/SRPMS/*.src.rpm)
 
 echo '[INFO] Rebuild ' ${topdir}/SRPMS/*.src.rpm
 exec rpmbuild -D "dist ${DIST:-.ns7}" --rebuild ${topdir}/SRPMS/*.src.rpm "$@"

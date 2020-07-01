@@ -30,3 +30,4 @@ env:
 
 script:
     - bash -x travis/build-container.sh
+    - bash -x travis/build-rpms.sh

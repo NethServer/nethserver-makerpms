@@ -22,35 +22,11 @@
 
 set -e
 
-function exit_error {
-   echo $1 >&2
-   exit 1
-}
-
-function help {
-   echo "Usage: $0 -s input.spec [-c commit]" >&2
-   echo '
-             -s input.spec         : The input RPM .spec file
-             -c commit             : the commit tag for development version build
-' >&2
-}
-
-while getopts ":s:c:" opt; do
-    case $opt in
-    s)
-        specfile=$OPTARG
-        [ -z "${specfile}" ] && exit_error "No spec file given"
-        ;;
-    c)
-        commit=$OPTARG
-        [ -z "${commit}" ] && exit_error "No commit given"
-        ;;
-    *)
-        break
-        ;;
-    esac
-done
-shift $((OPTIND-1))
+# Sanitize arguments with new call style
+if [[ $1 == "-s" ]]; then
+    shift
+fi
+specfile=${1:?"Bad invocation. Use '$0 filename.spec [arg]...' instead."}
 
 topdir=$(rpm --eval '%_topdir')
 

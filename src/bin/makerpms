@@ -22,7 +22,7 @@
 
 set -e
 
-export NSVER=${NSVER:-7} DIST
+export NSVER=${NSVER:-7} DIST COMMAND=${COMMAND:-makerpms} YUM_ARGS
 
 if [[ -z ${DIST} ]]; then
     DIST=.ns${NSVER}
@@ -38,11 +38,16 @@ if [ -z "$1" ]; then
     echo "Sensible to the following environment variables:"
     echo " - NSVER (${NSVER}) # NethServer version"
     echo " - DIST (${DIST}) # Package DIST suffix"
+    echo " - IMAGE # Override the builder image"
+    echo " - COMMAND (${COMMAND:-makerpms}) # Override the builder command"
+    echo " - YUM_ARGS # Extra arguments for YUM, to set up the packages in the builder image"
     echo ""
     exit 1
 fi
 
-if grep -q -E 'BuildArch:\s*noarch' "${1}"; then
+if [[ -n "${IMAGE}" ]]; then
+    image="${IMAGE}"
+elif grep -q -E 'BuildArch:\s*noarch' "${1}"; then
     image=nethserver/makerpms:${NSVER}
 else
     image=nethserver/makerpms:buildsys${NSVER}
@@ -80,11 +85,17 @@ podman run \
     --volume ${cachevol}:/var/cache/yum \
     --env NSVER \
     --env DIST \
+    --env YUM_ARGS \
     --tty \
     --interactive \
     ${image} \
-    ${command:-makerpms -s} "${@}"
+    ${COMMAND} "${@}"
 
 sync
 podman export "${container_id}" | tar -x -v --xform='s#^.+/##x' -f - srv/makerpms/rpmbuild/{S,}RPMS
-podman rm "${container_id}"
+
+if [[ "${COMMAND}" == "makerpms" || "${COMMAND}" == "makesrpm" ]]; then
+    podman rm "${container_id}"
+else
+    echo "[WARNING] the container has not been removed. Run 'podman rm ${container_id}' to drop it."
+fi
