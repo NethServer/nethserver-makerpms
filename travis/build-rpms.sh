@@ -1,5 +1,10 @@
 set -e
 
+if [[ "${NSVER}" == 6 ]]; then
+    echo "[NOTICE] Skip RPMs build for ns6"
+    exit 0
+fi
+
 docker run -ti --name makerpms ${EVARS} \
     --hostname b${TRAVIS_BUILD_NUMBER}.nethserver.org \
     --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} \
