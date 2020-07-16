@@ -12,22 +12,19 @@ RPM builds by Linux containers
 This is a simple RPM build environment based on the official CentOS Docker image.
 
 It can build RPMs in the travis-ci.org environment, or on your local
-Fedora 29+ machine. CentOS rootless builds seem to not (still) work: as such
-you must be root to make it work on NethServer 7.
+Fedora 31+/CentOS 8 machine.
 
-Installation
-------------
+Installation/upgrade
+--------------------
 
-On Fedora 31+ ::
+On Fedora 31+ and CentOS 8, run as a non-root user ::
 
-  $ sudo dnf install http://packages.nethserver.org/nethserver/7.8.2003/updates/x86_64/Packages/nethserver-makerpms-1.2.0-1.ns7.noarch.rpm
+  $ curl https://raw.githubusercontent.com/NethServer/nethserver-makerpms/master/install.sh | bash
 
-On NethServer 7 ::
+There must be ``podman`` already installed though.
 
-  # yum install nethserver-makerpms
-
-Build RPMs
-----------
+Building RPMs locally
+---------------------
 
 Requisites to build RPMs starting from a git repository:
 
@@ -36,7 +33,7 @@ Requisites to build RPMs starting from a git repository:
 - In the specfile, ``source0`` corresponds to the git archive output in
   ``tar.gz`` format (e.g. ``Source: %{name}-%{version}.tar.gz``)
 
-- If a SHA1SUM file at the root of the repository exists, the integrity of
+- If a ``SHA1SUM`` file at the root of the repository exists, the integrity of
   additional source tarballs is checked against it
 
 Additional missing tarballs are downloaded automatically with ``spectool``
@@ -46,9 +43,17 @@ If the requirements are met, change directory to the repository root then run ::
 
   $ makerpms *.spec
 
+Run without any argument to get a **brief help** ::
+
+  $ makerpms
+
 To build a NethServer 6 RPM pass the ``NSVER`` environment variable to ``makerpms`` ::
 
   $ NSVER=6 makerpms *.spec
+
+To build a package for another distribution pass the ``DIST`` environment variable ::
+
+  $ DIST=.el7 makerpms *.spec
 
 If you have a custom or development builder image to test, set the ``IMAGE`` environment variable, e.g.: ::
 
@@ -66,7 +71,7 @@ not tracked by ``BuildRequires``, enable additional repositories and so on... ::
 
 
 Optimizations
--------------
+^^^^^^^^^^^^^
 
 To speed up the build process, the YUM cache directory contents are preserved.
 Container instances share the named Podman volume ``makerpms-yum-cache``.
@@ -76,20 +81,20 @@ To clear the YUM cache run ::
   $ podman volume rm makerpms-yum-cache
 
 
-Container images
-----------------
+Builder container images
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-The container images are built every week and are available at
+The builder container images are updated periodically and are available at
 https://hub.docker.com/r/nethserver/makerpms.
 
 * ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
-* ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds
+* ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds (GCC 4)
 * ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds 
   with GCC 9 (devtoolset-9 from SCLo), then run makerpms in a SCLo environment, e.g. : ::
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
 
-To build the image locally run ::
+The container images
 
   cd /usr/share/nethserver-makerpms/
   podman build -f Dockerfile-7 .
@@ -97,3 +102,11 @@ To build the image locally run ::
 For more info about the image builds look at ``travis/build-container.sh``.
 
 Images for NethServer 6 are available as well: just replace ``7`` with ``6``.
+
+
+Other commands
+--------------
+
+* ``makesrpm`` builds just the ``.src.rpm`` package.
+* ``releasetag`` is a release workflow helper, specific for the NethServer community release guidelines
+* ``uploadrpms`` is a RPM publishing helper, specific for the NethServer community RPMs publishing policies
