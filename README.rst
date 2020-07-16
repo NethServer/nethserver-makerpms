@@ -121,7 +121,7 @@ Other commands
 .. _uploadrpms-section:
 
 uploadrpms
-~~~~~~~~~~
+^^^^^^^^^^
 
 The first time, before running ``uploadrpms`` ensure the following command works ::
 
@@ -130,7 +130,7 @@ The first time, before running ``uploadrpms`` ensure the following command works
 Accept the server SSH fingerprint when asked.
 
 The following command uploads all the RPMs in the current working directory to the ``nethforge`` testing
-repository for NethServer version ``7.8.2003``.
+repository for NethServer version ``7.8.2003``. ::
 
   $ uploadrpms username@packages.nethserver.org:nscom/7.8.2003/nethforge-testing *.rpm
 
@@ -142,7 +142,7 @@ The command output might complain about some SFTP disabled commands. Ignore thos
 .. _releasetag-section:
 
 releasetag
-~~~~~~~~~~
+^^^^^^^^^^
 
 The ``releasetag`` command executes a workflow that suits only those
 NethServer packages that expect a ``Version`` tag in the form ``X.Y.Z``.
@@ -163,7 +163,7 @@ To fetch issues from private GitHub repositories
 `create a private GitHub access token <https://github.com/settings/tokens/new>`_.
 Select the ``repo`` scope only.
 
-Copy it to :file:`~/.release_tag_token` and keep its content secret: ::
+Copy it to ``~/.release_tag_token`` and keep its content secret: ::
 
   chmod 600  ~/.release_tag_token
 
@@ -173,7 +173,7 @@ Copy it to :file:`~/.release_tag_token` and keep its content secret: ::
     because authenticated requests have an higher API rate limit
 
 
-The :command:`releasetag` command is now ready for use. This is the help output::
+The ``releasetag`` command is now ready for use. This is the help output::
 
   releasetag -h
   Usage: releasetag [-h] [-k KEYID] [-T <x.y.z>] [<file>.spec]
@@ -254,7 +254,7 @@ This is an example of ``.travis.yml`` contents: ::
           -e NSVER
           -e ENDPOINTS_PACK
           "
-script: |
+  script: |
         set -e
         docker run -ti \
           --name makerpms ${EVARS} \
