@@ -101,18 +101,15 @@ https://hub.docker.com/r/nethserver/makerpms.
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
 
-The container images
-
-  cd /usr/share/nethserver-makerpms/
-  podman build -f Dockerfile-7 .
-
-For more info about the image builds look at ``travis/build-container.sh``.
+For more info about how to build the images look at ``travis/build-container.sh``.
 
 Images for NethServer 6 are available as well: just replace ``7`` with ``6``.
 
 
 Other commands
 --------------
+
+The ``install.sh`` scripts installs also the following commands:
 
 * ``uploadrpms`` is a RPM publishing helper, specific for the NethServer community RPMs publishing policies
 * ``releasetag`` is a release workflow helper, specific for the NethServer community release guidelines
@@ -127,7 +124,7 @@ The first time, before running ``uploadrpms`` ensure the following command works
 
   $ sftp username@packages.nethserver.org
 
-Accept the server SSH fingerprint when asked.
+Accept the server SSH key fingerprint when asked.
 
 The following command uploads all the RPMs in the current working directory to the ``nethforge`` testing
 repository for NethServer version ``7.8.2003``. ::
