@@ -5,13 +5,13 @@ nethserver-makerpms
 
 RPM builds by Linux containers
 
-.. image:: https://travis-ci.org/NethServer/nethserver-makerpms.svg?branch=master
-    :target: https://travis-ci.org/NethServer/nethserver-makerpms
+.. image:: https://travis-ci.com/NethServer/nethserver-makerpms.svg?branch=master
+    :target: https://travis-ci.com/NethServer/nethserver-makerpms
 
 
 This is a simple RPM build environment based on the official CentOS Docker image.
 
-It can build RPMs in the travis-ci.org environment, or on your local
+It can build RPMs in the travis-ci.com environment, or on your local
 Fedora 31+/CentOS 8 machine.
 
 Installation/upgrade
@@ -21,7 +21,7 @@ On Fedora 31+ and CentOS 8, run as a non-root user ::
 
   $ curl https://raw.githubusercontent.com/NethServer/nethserver-makerpms/master/install.sh | bash
 
-There must be ``podman`` already installed though.
+There must be ``podman`` [#Podman]_ already installed though.
 
 Building RPMs locally
 ---------------------
@@ -113,25 +113,26 @@ Other commands
 
 
 
-travis-ci.org
-=============
+Building RPMs on travis-ci.com
+------------------------------
 
-`travis-ci.org <https://travis-ci.org>`_ automatically builds RPMs and uploads
-them to ``packages.nethserver.org``.
+`travis-ci.com <https://travis-ci.com>`_ automatically builds RPMs and uploads
+them to ``packages.nethserver.org``, if configured with enough environment variables
+and upload secrets.
 
 Configuration
--------------
+^^^^^^^^^^^^^
 
 To automate the RPM build process using Travis CI
 
 * create a ``.travis.yml`` file inside the source code repository hosted on
-  GitHub
+  GitHub.
 
-* the `NethServer repository <https://travis-ci.org/NethServer/>`_ must
-  have Travis CI builds enabled
+* the repository must have Travis CI builds enabled and upload secrets properly set up.
+  Contact the organization maintainer on community.nethserver.org for help.
 
 The list of enabled repositories is available at `NethServer page on
-travis-ci.org <https://travis-ci.org/NethServer/>`_.
+travis-ci.com <https://travis-ci.com/NethServer/>`_.
 
 This is an example of ``.travis.yml`` contents: ::
 
@@ -159,20 +160,23 @@ This is an example of ``.travis.yml`` contents: ::
           -e NSVER
           -e ENDPOINTS_PACK
           "
-  script: >
-      docker run -ti --name makerpms ${EVARS}
-      --hostname b${TRAVIS_BUILD_NUMBER}.nethserver.org
-      --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} makerpms-travis -s *.spec
-      && docker commit makerpms nethserver/build
-      && docker run -ti ${EVARS}
-      -e SECRET
-      -e SECRET_URL
-      -e AUTOBUILD_SECRET
-      -e AUTOBUILD_SECRET_URL
-      nethserver/build uploadrpms-travis
+script: |
+        set -e
+        docker run -ti \
+          --name makerpms ${EVARS} \
+          --hostname "b${TRAVIS_BUILD_NUMBER}.nethserver.org" \
+          --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} \
+          makerpms-travis *.spec
+        docker commit makerpms nethserver/build
+        docker run -ti ${EVARS} \
+          -e SECRET \
+          -e SECRET_URL \
+          -e AUTOBUILD_SECRET \
+          -e AUTOBUILD_SECRET_URL \
+          nethserver/build uploadrpms-travis
 
 Usage
------
+^^^^^
 
 Travis CI builds are triggered automatically when:
 
@@ -197,9 +201,6 @@ Also issues are commented by ``nethbot`` if the following rules are respected in
 2. The issue reference is added to standalone commits (should be rarely used)
 
 
-Global variables
-^^^^^^^^^^^^^^^^
-
 The build environment supports the following variables:
 
 - ``NSVER``
@@ -217,10 +218,18 @@ DOCKER_IMAGE
 
 The Docker build image can contain different RPMs depending on the tag:
 
-- ``latest`` or ``7``: contains only dependencies to build ``nethserver-*`` RPMS, like ``nethserver-base``.
+- ``latest`` (or ``7``) contains only dependencies to build ``nethserver-*`` RPMS, like ``nethserver-base``.
   It actually installs only nethserver-devtools and a basic RPM build environment without gcc compiler.
-- ``buildsys7``: it s based on the previous environment. It also pulls in the dependencies for arch-dependant packages (like ``asterisk13`` or ``ns-samba``).
-  It actually installs the ``buildsys-build`` package group, which provides the ``gcc`` compiler among other packages.
+
+- ``buildsys7`` is based on the previous environment. It also pulls in the dependencies for arch-dependant packages (like ``asterisk13`` or ``ns-samba``).
+  It actually installs the ``buildsys-build`` package group, which provides the ``gcc`` compiler (version 4) among other packages.
+
+- ``devtoolset7``: it extends the *buildsys7* with the devtoolset-9 SCLo packages set. It is possible to
+  compile with gcc version 9, by prefixing the container entry point in the following way: ::
+
+    docker run -ti [OPTIONS] scl enable devtoolset-9 -- makerpms-travis package.spec
+
+  See for instance https://github.com/NethServer/sofia-sip
 
 DEST_ID
 ~~~~~~~
@@ -238,3 +247,17 @@ If ``DEST_ID=forge``:
 * Pull requests are uploaded to ``nethforge-autobuild``
 
 * Branch builds are uploaded to ``nethforge-testing``, whilst tagged builds are uploaded to ``nethforge``
+
+.. warning::
+
+    In any case, **the git tag must begin with a digit**.
+    For instance the tag ``0.1.12`` is considered
+    as a tagged build whilst ``v0.1.12`` not
+
+
+.. rubric:: References
+
+.. [#Podman] Podman is a daemonless Linux container engine. https://podman.io/
+.. [#Autobuild] Is a particular kind of repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from travis-ci.com. http://packages.nethserver.org/nethserver/7.4.1708/autobuild/x86_64/Packages/
+.. [#Testing] Is a repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from travis-ci.com started form official ``nethserver`` github repository. http://packages.nethserver.org/nethserver/7.4.1708/testing/x86_64/Packages/
+.. [#NethBot] Is our bot that comments the issues and pull request with the list of automated RPMs builds. https://github.com/nethbot
