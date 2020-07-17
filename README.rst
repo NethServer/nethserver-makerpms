@@ -32,7 +32,7 @@ Requirements for building RPMs, implemented by the ``buildimage/makesrpm`` comma
 
 - Source tarballs defined in the .spec file can be downloaded via ``http://`` or ``ftp://``.
 
-- If a ``SHA1SUM`` file in the current working directory exists, the integrity of
+- If a ``SHA1SUM`` file exists in the current working directory, the integrity of
   source tarballs is checked against it. Do not put any path in the ``SHA1SUM`` contents,
   only the tarball/source file name.
 
@@ -230,7 +230,7 @@ To automate the RPM build process using Travis CI
   GitHub.
 
 * the repository must have Travis CI builds enabled and upload secrets properly set up.
-  Contact the organization maintainer on community.nethserver.org for help.
+  Contact the organization maintainer on `community.nethserver.org <https://community.nethserver.org>`_ for help.
 
 The list of enabled repositories is available at `NethServer page on
 travis-ci.com <https://travis-ci.com/NethServer/>`_.
@@ -330,7 +330,7 @@ The Docker build image can contain different RPMs depending on the tag:
 
     docker run -ti [OPTIONS] scl enable devtoolset-9 -- makerpms-travis package.spec
 
-  See for instance https://github.com/NethServer/sofia-sip
+  See for instance ` sofia-sip pacakge <https://github.com/NethServer/sofia-sip>`_.
 
 DEST_ID
 ~~~~~~~
@@ -354,7 +354,7 @@ If ``DEST_ID=forge``:
     In any case, **the git tag must begin with a digit
     and not containing any "-" minus symbol**.
     For instance the tag ``0.1.12`` is considered
-    as a tagged build whilst ``v0.1.12`` not
+    as a tagged build whilst ``v0.1.12-1`` is not
 
 
 
