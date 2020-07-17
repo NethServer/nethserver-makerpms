@@ -35,21 +35,21 @@ git_tag_opts=
 
 while getopts "t:T:k:h" opt; do
     case $opt in
-	h)
-	    exit_help
-	    ;;
+    h)
+        exit_help
+        ;;
         k)  # gpg sign git tag
             git_tag_opts+="-s -u $OPTARG"
-	    ;;
-	T)  # Add rpm makefile variable definition
-	    tag="$OPTARG"
-	    ;;
-	t)  # Alias for T
-	    tag="$OPTARG"
-	    ;;
-	\?) # Print help message and exit
-	    exit_help
-	    ;;
+        ;;
+    T)  # Add rpm makefile variable definition
+        tag="$OPTARG"
+        ;;
+    t)  # Alias for T
+        tag="$OPTARG"
+        ;;
+    \?) # Print help message and exit
+        exit_help
+        ;;
     esac
 done
 
