@@ -351,7 +351,8 @@ If ``DEST_ID=forge``:
 
 .. warning::
 
-    In any case, **the git tag must begin with a digit**.
+    In any case, **the git tag must begin with a digit
+    and not containing any "-" minus symbol**.
     For instance the tag ``0.1.12`` is considered
     as a tagged build whilst ``v0.1.12`` not
 
