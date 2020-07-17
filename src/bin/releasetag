@@ -22,37 +22,45 @@
 
 set -e
 
-issuetracker_url=${issuetracker_url:-http://dev.nethserver.org}
 export LANG=C
 unset ${!LC_*}
 
 function exit_help ()
 {
-   echo "Usage: $(basename $0) [-h] [-k KEYID] [-T <x.y.z>] [<file>.spec]" 1>&2
+   echo "Usage: $(basename $0) [-h] [-k KEYID] [-T <x.y.z>] <file>.spec" 1>&2
    exit 1
 }
 
 git_tag_opts=
 
-while getopts "T:k:h" opt; do
+while getopts "t:T:k:h" opt; do
     case $opt in
-	h)
-	    exit_help
-	    ;;
+    h)
+        exit_help
+        ;;
         k)  # gpg sign git tag
             git_tag_opts+="-s -u $OPTARG"
-	    ;;
-	T)  # Add rpm makefile variable definition
-	    tag="$OPTARG"
-	    ;;
-	\?) # Print help message and exit
-	    exit_help
-	    ;;
+        ;;
+    T)  # Add rpm makefile variable definition
+        tag="$OPTARG"
+        ;;
+    t)  # Alias for T
+        tag="$OPTARG"
+        ;;
+    \?) # Print help message and exit
+        exit_help
+        ;;
     esac
 done
 
 # Eat all the options:
 shift $(($OPTIND - 1)) || exit_help
+
+spec_file="$1"
+
+if [[ -z "${spec_file} "]]; then
+    exit_help
+fi
 
 if [ -z "${tag}" ]; then
     SHOW_ONLY="1"
@@ -63,8 +71,6 @@ git_user_name=$(git config --get user.name)
 git_user_email=$(git config --get user.email)
 editor=${EDITOR:-$(git config --get core.editor || echo 'vi')}
 changelog_timestamp=$(date +"%a %b %d %Y")
-spec_file=(*.spec)
-spec_file=${1:-${spec_file[0]}}
 
 gitdesc=($(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null | tr '-' ' '))
 last_release=
