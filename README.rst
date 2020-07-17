@@ -101,7 +101,17 @@ https://hub.docker.com/r/nethserver/makerpms.
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
 
-For more info about how to build the images look at ``travis/build-container.sh``.
+For more info about how to build the images locally look at ``travis/build-container.sh``.
+
+The following command locally builds the images with Podman (instead of Docker): ::
+
+  $ cat travis/build-container.sh  | sed s/docker/podman/  | \
+  grep -v -E '\b(login|logout|push)\b'  | \
+  NSVER=7 IMAGE_REPO=me/myimage bash
+
+To test the local image run makerpms as follow: ::
+
+  $ IMAGE=me/myimage:7 makerpms *.spec
 
 Images for NethServer 6 are available as well: just replace ``7`` with ``6``.
 
