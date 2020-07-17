@@ -22,7 +22,6 @@
 
 set -e
 
-issuetracker_url=${issuetracker_url:-http://dev.nethserver.org}
 export LANG=C
 unset ${!LC_*}
 
