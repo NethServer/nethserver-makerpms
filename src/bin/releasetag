@@ -33,7 +33,7 @@ function exit_help ()
 
 git_tag_opts=
 
-while getopts "T:k:h" opt; do
+while getopts "t:T:k:h" opt; do
     case $opt in
 	h)
 	    exit_help
@@ -42,6 +42,9 @@ while getopts "T:k:h" opt; do
             git_tag_opts+="-s -u $OPTARG"
 	    ;;
 	T)  # Add rpm makefile variable definition
+	    tag="$OPTARG"
+	    ;;
+	t)  # Alias for T
 	    tag="$OPTARG"
 	    ;;
 	\?) # Print help message and exit
