@@ -28,6 +28,10 @@ if [[ $1 == "-s" ]]; then
 fi
 specfile=${1:?"Bad invocation. Use '$0 filename.spec [arg]...' instead."}
 
+# Skip the .spec file argument
+# Further arguments are passed to rpmbuild
+shift
+
 topdir=$(rpm --eval '%_topdir')
 
 # Cleanup the topdir
@@ -82,4 +86,5 @@ if [[ -f SHA1SUM ]]; then
     popd
 fi
 
-exec rpmbuild -D "dist ${DIST:-.nsX}" -bs ${topdir}/SPECS/*.spec "$@"
+set -x
+exec rpmbuild -D "dist ${DIST:-.nsX}" -bs ${specfile} "$@"

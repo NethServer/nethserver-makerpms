@@ -36,10 +36,12 @@ if [[ ${topdir}/SRPMS/*.src.rpm == "${topdir}/SRPMS/*.src.rpm" ]]; then
 fi
 
 # Skip the .spec file argument
+# Further arguments are passed to rpmbuild
 shift
 
 echo '[INFO] Installing build deps...'
 PATH=/usr/bin sudo yum install -y --setopt=tsflags=nodocs ${YUM_ARGS} $(rpm -qp --requires ${topdir}/SRPMS/*.src.rpm)
 
 echo '[INFO] Rebuild ' ${topdir}/SRPMS/*.src.rpm
+set -x
 exec rpmbuild -D "dist ${DIST:-.ns7}" --rebuild ${topdir}/SRPMS/*.src.rpm "$@"
