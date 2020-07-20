@@ -58,7 +58,7 @@ shift $(($OPTIND - 1)) || exit_help
 
 spec_file="$1"
 
-if [[ -z "${spec_file} "]]; then
+if [[ -z "${spec_file}" ]]; then
     exit_help
 fi
 

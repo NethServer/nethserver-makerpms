@@ -199,9 +199,6 @@ program (or git ``core.editor``) is opened automatically to adjust the
 commit message. The same text is used as tag annotation.
 Usage of ``-k`` option is optional.
 
-The ``.spec`` argument is optional: if not provided the first
-``.spec`` file in the current directory is processed.
-
 To push the tagged release to GitHub (and possibly trigger an automated build)
 ensure to add the ``--follow-tags`` option to ``git push`` invocation. For
 instance: ::
