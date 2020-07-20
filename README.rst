@@ -327,7 +327,7 @@ The Docker build image can contain different RPMs depending on the tag:
 
     docker run -ti [OPTIONS] scl enable devtoolset-9 -- makerpms-travis package.spec
 
-  See for instance ` sofia-sip pacakge <https://github.com/NethServer/sofia-sip>`_.
+  For instance, see the `sofia-sip package <https://github.com/NethServer/sofia-sip>`_.
 
 DEST_ID
 ~~~~~~~
