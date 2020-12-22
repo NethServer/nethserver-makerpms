@@ -8,7 +8,6 @@ branches:
 matrix:
     include:
         - env: NSVER=7 IMAGE_REPO=nethserver/makerpms
-        - env: NSVER=6 IMAGE_REPO=nethserver/makerpms
 env:
     global:
         - NSLATEST=7
