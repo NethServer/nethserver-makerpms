@@ -235,7 +235,7 @@ travis-ci.com <https://travis-ci.com/NethServer/>`_.
 This is an example of ``.travis.yml`` contents: ::
 
   ---
-  language: ruby
+  language: minimal
   services:
       - docker
   branches:
