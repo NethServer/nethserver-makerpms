@@ -23,6 +23,7 @@
 # This file shouldn't be called as standalone, always use a makerpms-* to correctly set the variables needed.
 # Variables needed:
 # PULL_REQUEST_BRANCH
+# BUILD_ID
 
 if [[ "${UPLOAD_DEST}" == *=* ]]; then
     # use old variable

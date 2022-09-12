@@ -21,5 +21,6 @@
 #
 
 export PULL_REQUEST_BRANCH="$TRAVIS_PULL_REQUEST_BRANCH"
+export BUILD_ID="$TRAVIS_BUILD_ID"
 
 exec uploadrpms-ci "$@"

@@ -37,7 +37,7 @@ tmpcmd=$(mktemp)
 trap "rm -f $tmpcmd" EXIT
 
 (
-    spool=$(mktemp -u "${username}${MYTRAVIS_EP:+@}${MYTRAVIS_EP}.${TRAVIS_BUILD_ID:-XXXX}.XXXXXX");
+    spool=$(mktemp -u "${username}${MYTRAVIS_EP:+@}${MYTRAVIS_EP}.${BUILD_ID:-XXXX}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
     for F in $(find . -name '*.rpm'); do
