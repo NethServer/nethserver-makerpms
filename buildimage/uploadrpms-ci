@@ -1,0 +1,72 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# This file shouldn't be called as standalone, always use a makerpms-* to correctly set the variables needed.
+# Variables needed:
+# PULL_REQUEST_BRANCH
+
+if [[ "${UPLOAD_DEST}" == *=* ]]; then
+    # use old variable
+    echo "[NOTICE] Replace UPLOAD_DEST environment variable with ENDPOINTS_PACK in .travis.yml"
+    declare -A "endpoints=(${UPLOAD_DEST})"
+else
+    # use new variable
+    declare -A "endpoints=(${ENDPOINTS_PACK})"
+fi
+
+# Ugly way to retrieve MYTRAVIS_EP from the Docker environment:
+export MYTRAVIS_EP=${endpoints[MYTRAVIS_EP]}
+
+if [[ -f ~/.tag-release ]]; then
+    stage=updates
+elif [[ -z "${PULL_REQUEST_BRANCH}" ]]; then
+    stage=testing
+else
+    stage=autobuild
+    SECRET=${AUTOBUILD_SECRET}
+    SECRET_URL=${AUTOBUILD_SECRET_URL}
+fi
+
+# Clean up the private key and shutdown agent
+trap '> /srv/makerpms/.ssh/id_rsa; kill $SSH_AGENT_PID' EXIT
+
+curl -s "${SECRET_URL}" > /srv/makerpms/.ssh/id_rsa
+
+eval $(ssh-agent)
+
+expect << EOF
+  spawn ssh-add /srv/makerpms/.ssh/id_rsa
+  expect "Enter passphrase"
+  send "${SECRET}\r"
+  expect eof
+EOF
+
+unset SECRET SECRET_URL
+
+find $(rpm --eval '%_topdir') -type f -name '*.rpm' | xargs -- rpm -qp --queryformat="\[UPLOAD_SHA1\] %{NVRA} %{SOURCEPACKAGE} %{SHA1HEADER}\n"
+
+uploadrpms "$@" "${endpoints[${DEST_ID}_${NSVER}_${stage}]:?invalid ENDPOINT}"
+
+if [[ $? != 0 ]]; then
+    echo "[ERROR] sftp upload error" 1>&2
+    exit 1
+fi
