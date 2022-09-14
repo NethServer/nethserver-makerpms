@@ -34,8 +34,8 @@ else
     declare -A "endpoints=(${ENDPOINTS_PACK})"
 fi
 
-# Ugly way to retrieve MYTRAVIS_EP from the Docker environment:
-export MYTRAVIS_EP=${endpoints[MYTRAVIS_EP]}
+# Ugly way to retrieve TARGET_ENDPOINTS from the Docker environment:
+export TARGET_ENDPOINTS=${endpoints[TARGET_ENDPOINTS]}
 
 if [[ -f ~/.tag-release ]]; then
     stage=updates
