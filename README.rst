@@ -96,7 +96,7 @@ https://hub.docker.com/r/nethserver/makerpms.
 
 * ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
 * ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds (GCC 4)
-* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds 
+* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds
   with GCC 9 (devtoolset-9 from SCLo), then run makerpms in a SCLo environment, e.g. : ::
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
@@ -211,67 +211,86 @@ To make ``--follow-tags`` permanent run this command: ::
 
 
 
-Building RPMs on travis-ci.com
+Building RPMs on github.com
 ------------------------------
 
-`travis-ci.com <https://travis-ci.com>`_ automatically builds RPMs and uploads
+`github.com <https://github.com/features/actions>`_ automatically builds RPMs and uploads
 them to ``packages.nethserver.org``, if configured with enough environment variables
 and upload secrets.
 
 Configuration
 ^^^^^^^^^^^^^
 
-To automate the RPM build process using Travis CI
+To automate the RPM build process using GitHub
 
-* create a ``.travis.yml`` file inside the source code repository hosted on
+* create a ``.github/workflows/make-rpms.yml`` file inside the source code repository hosted on
   GitHub.
 
-* the repository must have Travis CI builds enabled and upload secrets properly set up.
+* the repository must have builds enabled and upload secrets properly set up, if the repo is inside Nethserver org, everything is already set up (as long as you have write access to the repo).
   Contact the organization maintainer on `community.nethserver.org <https://community.nethserver.org>`_ for help.
 
-The list of enabled repositories is available at `NethServer page on
-travis-ci.com <https://travis-ci.com/NethServer/>`_.
+This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
 
-This is an example of ``.travis.yml`` contents: ::
-
-  ---
-  language: minimal
-  services:
-      - docker
-  branches:
-      only:
-          - master
-  env:
-    global:
-      - DEST_ID=core
-      - NSVER=7
-      - DOCKER_IMAGE=nethserver/makerpms:${NSVER}
-      - >
-          EVARS="
-          -e DEST_ID
-          -e TRAVIS_BRANCH
-          -e TRAVIS_BUILD_ID
-          -e TRAVIS_PULL_REQUEST_BRANCH
-          -e TRAVIS_PULL_REQUEST
-          -e TRAVIS_REPO_SLUG
-          -e TRAVIS_TAG
-          -e NSVER
-          -e ENDPOINTS_PACK
-          "
-  script: |
-        set -e
-        docker run -ti \
-          --name makerpms ${EVARS} \
-          --hostname "b${TRAVIS_BUILD_NUMBER}.nethserver.org" \
-          --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} \
-          makerpms-travis *.spec
-        docker commit makerpms nethserver/build
-        docker run -ti ${EVARS} \
-          -e SECRET \
-          -e SECRET_URL \
-          -e AUTOBUILD_SECRET \
-          -e AUTOBUILD_SECRET_URL \
-          nethserver/build uploadrpms-travis
+  name: Make RPMs
+  on:
+    push:
+      branches:
+        - master
+        - main
+    pull_request:
+  jobs:
+    make-rpm:
+      runs-on: ubuntu-latest
+      env:
+        DEST_ID: core
+        NSVER: 7
+        DOCKER_IMAGE: nethserver/makerpms:7
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+            ref: ${{ github.head_ref }}
+        - name: Prep build
+          run: if test -f "prep-sources"; then ./prep-sources; fi
+        - name: Build RPM and publish
+          run: |
+            echo "Starting build..."
+            docker run --name makerpms \
+              --env NSVER \
+              --env GITHUB_HEAD_REF \
+              --env GITHUB_REF \
+              --hostname $GITHUB_RUN_ID-$GITHUB_RUN_NUMBER.nethserver.org \
+              --volume $PWD:/srv/makerpms/src:ro \
+              $DOCKER_IMAGE \
+              makerpms-github -s *.spec
+            echo "Build succesful."
+            echo "Checking if publish configuration exists..."
+            SECRETS="${{ toJson(secrets) }}"
+            export ENDPOINTS_PACK=$(echo $SECRETS | jq '.endpoints_pack')
+            export SECRET=$(echo $SECRETS | jq '.secret')
+            export SECRET_URL=$(echo $SECRETS | jq '.secret_url')
+            export AUTOBUILD_SECRET=$(echo $SECRETS | jq '.autobuild_secret')
+            export AUTOBUILD_SECRET_URL=$(echo $SECRETS | jq '.autobuild_secret_url')
+            export GPG_SIGN_KEY=$(echo $SECRETS | jq '.gpg_sign_key')
+            if [[ "$ENDPOINTS_PACK" -a "$SECRET" -a "$SECRET_URL" -a "$AUTOBUILD_SECRET" -a "$AUTOBUILD_SECRET_URL" -a "$GPG_SIGN_KEY" ]]; then
+              echo "Publish configuration exists, pushing package to repo."
+              docker commit makerpms nethserver/build
+              docker run \
+                --env DEST_ID \
+                --env NSVER \
+                --env GITHUB_HEAD_REF \
+                --env GITHUB_RUN_NUMBER \
+                --env GITHUB_ACTIONS \
+                --env ENDPOINTS_PACK \
+                --env SECRET \
+                --env SECRET_URL \
+                --env AUTOBUILD_SECRET \
+                --env AUTOBUILD_SECRET_URL \
+                --env GPG_SIGN_KEY \
+                nethserver/build \
+                uploadrpms-github
+              echo "Publish complete."
+            fi
 
 Usage
 ^^^^^
@@ -279,7 +298,7 @@ Usage
 Travis CI builds are triggered automatically when:
 
 * one or more commits are pushed to the `master` branch of the NethServer repository, as
-  stated in the ``.travis.yml`` file above by the ``branches`` key
+  stated in the ``.github/workflows/make-rpms.yml`` file inside the ``on.push.branches`` key
 
 * A *pull request* is opened from a NethServer repository fork or it is updated
   by submitting new commits
