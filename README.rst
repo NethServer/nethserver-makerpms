@@ -250,47 +250,44 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
           with:
             fetch-depth: 0
             ref: ${{ github.head_ref }}
-        - name: Prep build
+        - name: Generate .env file
+          run: |
+            cat .env < EOF
+              DEST_ID=${{ env.DEST_ID }}
+              NSVER=${{ env.NSVER }}
+              DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}
+              GITHUB_HEAD_REF=${{ env.GITHUB_HEAD_REF }}
+              GITHUB_RUN_NUMBER=${{ env.GITHUB_RUN_NUMBER }}
+              GITHUB_ACTIONS=${{ env.GITHUB_ACTIONS }}
+              ENDPOINTS_PACK=${{ secrets.endpoints_pack }}
+              SECRET=${{ secrets.secret }}
+              SECRET_URL=${{ secrets.secret_url }}
+              AUTOBUILD_SECRET=${{ secrets.autobuild_secret }}
+              AUTOBUILD_SECRET_URL=${{ secrets.autobuild_secret_url }}
+              GPG_SIGN_KEY=${{ secrets.gpg_sign_key }}
+            EOF
           run: if test -f "prep-sources"; then ./prep-sources; fi
         - name: Build RPM and publish
           run: |
             echo "Starting build..."
             docker run --name makerpms \
-              --env NSVER \
-              --env GITHUB_HEAD_REF \
-              --env GITHUB_REF \
+              --env-file .env
               --hostname $GITHUB_RUN_ID-$GITHUB_RUN_NUMBER.nethserver.org \
               --volume $PWD:/srv/makerpms/src:ro \
               $DOCKER_IMAGE \
               makerpms-github -s *.spec
             echo "Build succesful."
             echo "Checking if publish configuration exists..."
-            SECRETS="${{ toJson(secrets) }}"
-            export ENDPOINTS_PACK=$(echo $SECRETS | jq '.endpoints_pack')
-            export SECRET=$(echo $SECRETS | jq '.secret')
-            export SECRET_URL=$(echo $SECRETS | jq '.secret_url')
-            export AUTOBUILD_SECRET=$(echo $SECRETS | jq '.autobuild_secret')
-            export AUTOBUILD_SECRET_URL=$(echo $SECRETS | jq '.autobuild_secret_url')
-            export GPG_SIGN_KEY=$(echo $SECRETS | jq '.gpg_sign_key')
-            if [[ "$ENDPOINTS_PACK" -a "$SECRET" -a "$SECRET_URL" -a "$AUTOBUILD_SECRET" -a "$AUTOBUILD_SECRET_URL" -a "$GPG_SIGN_KEY" ]]; then
+            if [[ "${{ secret.endpoints_pack }}" -a "${{ secret.secret }} ]]; then
               echo "Publish configuration exists, pushing package to repo."
               docker commit makerpms nethserver/build
               docker run \
-                --env DEST_ID \
-                --env NSVER \
-                --env GITHUB_HEAD_REF \
-                --env GITHUB_RUN_NUMBER \
-                --env GITHUB_ACTIONS \
-                --env ENDPOINTS_PACK \
-                --env SECRET \
-                --env SECRET_URL \
-                --env AUTOBUILD_SECRET \
-                --env AUTOBUILD_SECRET_URL \
-                --env GPG_SIGN_KEY \
+                --env-file .env
                 nethserver/build \
                 uploadrpms-github
               echo "Publish complete."
             fi
+            rm .env
 
 Usage
 ^^^^^
