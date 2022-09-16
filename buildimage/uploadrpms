@@ -43,7 +43,7 @@ trap "rm -f $tmpcmd" EXIT
     if [[ "$GITHUB_ACTIONS" -a "$GPG_SIGN_KEY" ]]; then
         echo "$GPG_SIGN_KEY" | gpg --import &> /dev/null
         for file in $(find . -name '*.rpm'); do
-            gpg --sign "$FILE" &> /dev/null
+            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$FILE" &> /dev/null
             echo "put $F.gpg";
         done;
     else
