@@ -40,12 +40,13 @@ trap "rm -f $tmpcmd" EXIT
     spool=$(mktemp -u "${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
-    if [[ "$GITHUB_ACTIONS" -a "$GPG_SIGN_KEY" ]]; then
+    if [[ "$GITHUB_ACTIONS" && "$GPG_SIGN_KEY" ]]; then
         echo "$GPG_SIGN_KEY" | gpg --import &> /dev/null
-        for file in $(find . -name '*.rpm'); do
-            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$FILE" &> /dev/null
+        while IFS= read -r -d '' file
+        do
+            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$file" &> /dev/null
             echo "put $F.gpg";
-        done;
+        done < <(find . -name '*.rpm' -print0)
     else
         for F in $(find . -name '*.rpm'); do
             echo "put $F";
