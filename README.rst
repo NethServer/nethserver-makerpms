@@ -266,6 +266,7 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
               AUTOBUILD_SECRET_URL=${{ secrets.autobuild_secret_url }}
               GPG_SIGN_KEY=${{ secrets.gpg_sign_key }}
             EOF
+        - name: Run prep-sources if present.
           run: if test -f "prep-sources"; then ./prep-sources; fi
         - name: Build RPM and publish
           run: |
