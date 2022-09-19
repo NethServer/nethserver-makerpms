@@ -21,6 +21,7 @@
 #
 
 export PULL_REQUEST_BRANCH="$GITHUB_HEAD_REF"
-export PULL_REQUEST_NUMBER=$(echo "$GITHUB_REF" | sed -n "s/^refs\/pull\/\(.*\)\/merge$/\1/p")
+export PULL_REQUEST_NUMBER
+PULL_REQUEST_NUMBER=$(echo "$GITHUB_REF" | sed -n "s/^refs\/pull\/\(.*\)\/merge$/\1/p")
 
 exec makerpms-ci "$@"
