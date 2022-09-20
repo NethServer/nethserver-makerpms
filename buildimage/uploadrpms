@@ -41,10 +41,10 @@ trap "rm -f $tmpcmd" EXIT
     echo "mkdir $spool";
     echo "cd $spool";
     if [[ "$GITHUB_ACTIONS" && "$GPG_SIGN_KEY" ]]; then
-        echo "$GPG_SIGN_KEY" | gpg --import &> /dev/null
+        echo "$GPG_SIGN_KEY" | gpg --import > /dev/null
         while IFS= read -r -d '' file
         do
-            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$file" &> /dev/null
+            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$file" > /dev/null
             echo "put $F.gpg";
         done < <(find . -name '*.rpm' -print0)
     else
