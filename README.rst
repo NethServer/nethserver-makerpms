@@ -252,7 +252,7 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
             ref: ${{ github.head_ref }}
         - name: Generate .env file
           run: |
-            cat .env < EOF
+            cat > .env <<EOF
               DEST_ID=${{ env.DEST_ID }}
               NSVER=${{ env.NSVER }}
               DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}
