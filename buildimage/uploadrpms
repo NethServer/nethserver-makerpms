@@ -40,7 +40,7 @@ trap "rm -f $tmpcmd" EXIT
     spool=$(mktemp -u "${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
-    if [[ "$GITHUB_ACTIONS" && "$GPG_SIGN_KEY" ]]; then
+    if [[ "$GITHUB_ACTIONS" && "$PULL_REQUEST_BRANCH" && "$GPG_SIGN_KEY" ]]; then
         echo "$GPG_SIGN_KEY" | gpg --import > /dev/null
         while IFS= read -r -d '' file
         do
