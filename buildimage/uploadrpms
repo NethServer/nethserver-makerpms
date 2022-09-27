@@ -37,7 +37,7 @@ tmpcmd=$(mktemp)
 trap "rm -f $tmpcmd" EXIT
 
 if [[ "$GITHUB_ACTIONS" ]]; then
-    spool=$(mktemp -u "github-${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
+    spool=$(mktemp -u "github-${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${REPO_NAME}.${BUILD_ID:-XXXX}.XXXXXX");
 else 
     spool=$(mktemp -u "${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
 fi

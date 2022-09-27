@@ -256,10 +256,11 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
               DEST_ID=${{ env.dest_id }}
               NSVER=${{ env.nsver }}
               DOCKER_IMAGE=${{ env.docker_image }}
-              GITHUB_REF=${{ github.ref }}
-              GITHUB_HEAD_REF=${{ github.head_ref }}
-              GITHUB_RUN_ID=${{ github.run_id }}
               GITHUB_ACTIONS=1
+              GITHUB_HEAD_REF=${{ github.head_ref }}
+              GITHUB_REF=${{ github.ref }}
+              GITHUB_REPOSITORY=${{ github.repository }}
+              GITHUB_RUN_ID=${{ github.run_id }}
               ENDPOINTS_PACK=${{ secrets.endpoints_pack }}
               SECRET=${{ secrets.secret }}
               SECRET_URL=${{ secrets.secret_url }}
