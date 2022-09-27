@@ -242,9 +242,9 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
     make-rpm:
       runs-on: ubuntu-latest
       env:
-        DEST_ID: core
-        NSVER: 7
-        DOCKER_IMAGE: nethserver/makerpms:7
+        dest_id: core
+        nsver: 7
+        docker_image: nethserver/makerpms:7
       steps:
         - uses: actions/checkout@v3
           with:
@@ -253,18 +253,18 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
         - name: Generate .env file
           run: |
             cat > .env <<EOF
-              DEST_ID=${{ env.DEST_ID }}
-              NSVER=${{ env.NSVER }}
-              DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}
-              GITHUB_HEAD_REF=${{ env.GITHUB_HEAD_REF }}
-              GITHUB_RUN_NUMBER=${{ env.GITHUB_RUN_NUMBER }}
-              GITHUB_ACTIONS=${{ env.GITHUB_ACTIONS }}
+              DEST_ID=${{ env.dest_id }}
+              NSVER=${{ env.nsver }}
+              DOCKER_IMAGE=${{ env.docker_image }}
+              GITHUB_REF=${{ github.ref }}
+              GITHUB_HEAD_REF=${{ github.head_ref }}
+              GITHUB_RUN_ID=${{ github.run_id }}
+              GITHUB_ACTIONS=1
               ENDPOINTS_PACK=${{ secrets.endpoints_pack }}
               SECRET=${{ secrets.secret }}
               SECRET_URL=${{ secrets.secret_url }}
               AUTOBUILD_SECRET=${{ secrets.autobuild_secret }}
               AUTOBUILD_SECRET_URL=${{ secrets.autobuild_secret_url }}
-              GPG_SIGN_KEY=${{ secrets.gpg_sign_key }}
             EOF
         - name: Run prep-sources if present.
           run: if test -f "prep-sources"; then ./prep-sources; fi
@@ -272,18 +272,17 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
           run: |
             echo "Starting build..."
             docker run --name makerpms \
-              --env-file .env
+              --env-file .env \
               --hostname $GITHUB_RUN_ID-$GITHUB_RUN_NUMBER.nethserver.org \
               --volume $PWD:/srv/makerpms/src:ro \
-              $DOCKER_IMAGE \
+               ${{ env.docker_image }} \
               makerpms-github -s *.spec
             echo "Build succesful."
-            echo "Checking if publish configuration exists..."
-            if [[ "${{ secret.endpoints_pack }}" -a "${{ secret.secret }} ]]; then
-              echo "Publish configuration exists, pushing package to repo."
+            if [[ "${{ secrets.endpoints_pack }}" && "${{ secrets.secret }}" ]]; then
+              echo "Publish configuration exists, pushing package to repo..."
               docker commit makerpms nethserver/build
               docker run \
-                --env-file .env
+                --env-file .env \
                 nethserver/build \
                 uploadrpms-github
               echo "Publish complete."
