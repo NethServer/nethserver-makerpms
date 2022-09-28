@@ -376,6 +376,6 @@ If ``DEST_ID=forge``:
 .. rubric:: References
 
 .. [#Podman] Podman is a daemonless Linux container engine. https://podman.io/
-.. [#Autobuild] Is a particular kind of repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions. http://packages.nethserver.org/nethserver/7.4.1708/autobuild/x86_64/Packages/
-.. [#Testing] Is a repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions started form official ``nethserver`` github repository. http://packages.nethserver.org/nethserver/7.4.1708/testing/x86_64/Packages/
+.. [#Autobuild] Is a particular kind of repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions. http://packages.nethserver.org/nethserver/7.9.2009/autobuild/x86_64/Packages/
+.. [#Testing] Is a repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions started form official ``nethserver`` github repository. http://packages.nethserver.org/nethserver/7.9.2009/testing/x86_64/Packages/
 .. [#NethBot] Is our bot that comments the issues and pull request with the list of automated RPMs builds. https://github.com/nethbot
