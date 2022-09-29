@@ -41,6 +41,7 @@ if [ -z "$1" ]; then
     echo " - IMAGE # Override the builder image"
     echo " - COMMAND (${COMMAND:-makerpms}) # Override the builder command"
     echo " - YUM_ARGS # Extra arguments for YUM, to set up the packages in the builder image"
+    echo " - PODMAN_ARGS # Extra arguments for Podman, like --volume --env etc"
     echo ""
     exit 1
 fi
@@ -80,7 +81,7 @@ fi
 podman run \
     --hostname b$$.$(hostname) \
     --name "${container_id}" \
-    --security-opt label=disable \
+    --security-opt label=disable ${PODMAN_ARGS} \
     --volume $PWD:/srv/makerpms/src:ro \
     --volume ${cachevol}:/var/cache/yum \
     --env NSVER \
