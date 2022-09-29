@@ -76,6 +76,10 @@ not tracked by ``BuildRequires``, enable additional repositories and so on... ::
 
   $ YUM_ARGS="--enablerepo=nethserver-testing" makerpms *.spec
 
+To pass additional arguments to Podman, use PODMAN_ARGS instead ::
+
+  $ PODMAN_ARGS="--volume=$PWD/myrepo.conf:/etc/yum.repos.d/myrepo.conf"
+
 
 Optimizations
 ^^^^^^^^^^^^^
