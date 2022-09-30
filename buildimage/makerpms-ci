@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# This file shouldn't be called as standalone, always use a makerpms-* to correctly set the variables needed.
+# Variables needed:
+# PULL_REQUEST_BRANCH
+# PULL_REQUEST_NUMBER
+
+topdir=$(rpm --eval '%_topdir')
+
+IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
+
+export DIST
+
+# Ensure the tag-release flag is unset:
+rm -f ~/.tag-release
+
+if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
+    # updates/tagged release
+    DIST=.ns${NSVER}
+    # Set the tag-release flag for uploadrpms-travis script
+    echo "[INFO] set tag-release flag"
+    touch ~/.tag-release
+elif [[ -z "${PULL_REQUEST_BRANCH}" ]]; then
+    # testing
+    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
+else
+    # autobuild
+    DIST=.${desc_commitn}.pr${PULL_REQUEST_NUMBER}.${desc_commith}.ns${NSVER}
+fi
+
+exec makerpms "$@"

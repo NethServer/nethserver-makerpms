@@ -100,7 +100,7 @@ https://hub.docker.com/r/nethserver/makerpms.
 
 * ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
 * ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds (GCC 4)
-* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds 
+* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds
   with GCC 9 (devtoolset-9 from SCLo), then run makerpms in a SCLo environment, e.g. : ::
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
@@ -215,75 +215,92 @@ To make ``--follow-tags`` permanent run this command: ::
 
 
 
-Building RPMs on travis-ci.com
+Building RPMs on github.com
 ------------------------------
 
-`travis-ci.com <https://travis-ci.com>`_ automatically builds RPMs and uploads
+`github.com <https://github.com/features/actions>`_ automatically builds RPMs and uploads
 them to ``packages.nethserver.org``, if configured with enough environment variables
 and upload secrets.
 
 Configuration
 ^^^^^^^^^^^^^
 
-To automate the RPM build process using Travis CI
+To automate the RPM build process using GitHub
 
-* create a ``.travis.yml`` file inside the source code repository hosted on
+* create a ``.github/workflows/make-rpms.yml`` file inside the source code repository hosted on
   GitHub.
 
-* the repository must have Travis CI builds enabled and upload secrets properly set up.
+* the repository must have builds enabled and upload secrets properly set up, if the repo is inside Nethserver org, everything is already set up (as long as you have write access to the repo).
   Contact the organization maintainer on `community.nethserver.org <https://community.nethserver.org>`_ for help.
 
-The list of enabled repositories is available at `NethServer page on
-travis-ci.com <https://travis-ci.com/NethServer/>`_.
+This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
 
-This is an example of ``.travis.yml`` contents: ::
-
-  ---
-  language: minimal
-  services:
-      - docker
-  branches:
-      only:
-          - master
-  env:
-    global:
-      - DEST_ID=core
-      - NSVER=7
-      - DOCKER_IMAGE=nethserver/makerpms:${NSVER}
-      - >
-          EVARS="
-          -e DEST_ID
-          -e TRAVIS_BRANCH
-          -e TRAVIS_BUILD_ID
-          -e TRAVIS_PULL_REQUEST_BRANCH
-          -e TRAVIS_PULL_REQUEST
-          -e TRAVIS_REPO_SLUG
-          -e TRAVIS_TAG
-          -e NSVER
-          -e ENDPOINTS_PACK
-          "
-  script: |
-        set -e
-        docker run -ti \
-          --name makerpms ${EVARS} \
-          --hostname "b${TRAVIS_BUILD_NUMBER}.nethserver.org" \
-          --volume $PWD:/srv/makerpms/src:ro ${DOCKER_IMAGE} \
-          makerpms-travis *.spec
-        docker commit makerpms nethserver/build
-        docker run -ti ${EVARS} \
-          -e SECRET \
-          -e SECRET_URL \
-          -e AUTOBUILD_SECRET \
-          -e AUTOBUILD_SECRET_URL \
-          nethserver/build uploadrpms-travis
+  name: Make RPMs
+  on:
+    push:
+      branches:
+        - master
+        - main
+    pull_request:
+  jobs:
+    make-rpm:
+      runs-on: ubuntu-latest
+      env:
+        dest_id: core
+        nsver: 7
+        docker_image: nethserver/makerpms:7
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+            ref: ${{ github.head_ref }}
+        - name: Generate .env file
+          run: |
+            cat > .env <<EOF
+              DEST_ID=${{ env.dest_id }}
+              NSVER=${{ env.nsver }}
+              DOCKER_IMAGE=${{ env.docker_image }}
+              GITHUB_ACTIONS=1
+              GITHUB_HEAD_REF=${{ github.head_ref }}
+              GITHUB_REF=${{ github.ref }}
+              GITHUB_REPOSITORY=${{ github.repository }}
+              GITHUB_RUN_ID=${{ github.run_id }}
+              ENDPOINTS_PACK=${{ secrets.endpoints_pack }}
+              SECRET=${{ secrets.secret }}
+              SECRET_URL=${{ secrets.secret_url }}
+              AUTOBUILD_SECRET=${{ secrets.autobuild_secret }}
+              AUTOBUILD_SECRET_URL=${{ secrets.autobuild_secret_url }}
+            EOF
+        - name: Run prep-sources if present.
+          run: if test -f "prep-sources"; then ./prep-sources; fi
+        - name: Build RPM and publish
+          run: |
+            echo "Starting build..."
+            docker run --name makerpms \
+              --env-file .env \
+              --hostname $GITHUB_RUN_ID-$GITHUB_RUN_NUMBER.nethserver.org \
+              --volume $PWD:/srv/makerpms/src:ro \
+               ${{ env.docker_image }} \
+              makerpms-github -s *.spec
+            echo "Build succesful."
+            if [[ "${{ secrets.endpoints_pack }}" && "${{ secrets.secret }}" ]]; then
+              echo "Publish configuration exists, pushing package to repo..."
+              docker commit makerpms nethserver/build
+              docker run \
+                --env-file .env \
+                nethserver/build \
+                uploadrpms-github
+              echo "Publish complete."
+            fi
+            rm .env
 
 Usage
 ^^^^^
 
-Travis CI builds are triggered automatically when:
+GitHub Actions builds are triggered automatically when:
 
 * one or more commits are pushed to the `master` branch of the NethServer repository, as
-  stated in the ``.travis.yml`` file above by the ``branches`` key
+  stated in the ``.github/workflows/make-rpms.yml`` file inside the ``on.push.branches`` key
 
 * A *pull request* is opened from a NethServer repository fork or it is updated
   by submitting new commits
@@ -363,6 +380,6 @@ If ``DEST_ID=forge``:
 .. rubric:: References
 
 .. [#Podman] Podman is a daemonless Linux container engine. https://podman.io/
-.. [#Autobuild] Is a particular kind of repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from travis-ci.com. http://packages.nethserver.org/nethserver/7.4.1708/autobuild/x86_64/Packages/
-.. [#Testing] Is a repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from travis-ci.com started form official ``nethserver`` github repository. http://packages.nethserver.org/nethserver/7.4.1708/testing/x86_64/Packages/
+.. [#Autobuild] Is a particular kind of repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions. http://packages.nethserver.org/nethserver/7.9.2009/autobuild/x86_64/Packages/
+.. [#Testing] Is a repository in ``packages.nethserver.org`` that hosts the rpms builded automatically from github.com/features/actions started form official ``nethserver`` github repository. http://packages.nethserver.org/nethserver/7.9.2009/testing/x86_64/Packages/
 .. [#NethBot] Is our bot that comments the issues and pull request with the list of automated RPMs builds. https://github.com/nethbot

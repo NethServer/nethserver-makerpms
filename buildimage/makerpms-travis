@@ -20,36 +20,7 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-topdir=$(rpm --eval '%_topdir')
+export PULL_REQUEST_BRANCH="$TRAVIS_PULL_REQUEST_BRANCH"
+export PULL_REQUEST_NUMBER="$TRAVIS_PULL_REQUEST"
 
-#
-# Variables from environment:
-#
-# NSVER
-# TRAVIS_TAG
-# TRAVIS_PULL_REQUEST_BRANCH
-# TRAVIS_BRANCH
-# TRAVIS_PULL_REQUEST
-
-IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
-
-export DIST
-
-# Ensure the tag-release flag is unset:
-rm -f ~/.tag-release
-
-if [[ -z "${desc_commitn}" && -z "${desc_commith}" ]]; then
-    # updates/tagged release
-    DIST=.ns${NSVER}
-    # Set the tag-release flag for uploadrpms-travis script
-    echo "[INFO] set tag-release flag"
-    touch ~/.tag-release
-elif [[ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]]; then
-    # testing
-    DIST=.${desc_commitn}.${desc_commith}.ns${NSVER}
-else
-    # autobuild
-    DIST=.${desc_commitn}.pr${TRAVIS_PULL_REQUEST}.${desc_commith}.ns${NSVER}
-fi
-
-exec makerpms "$@"
+exec makerpms-ci "$@"
