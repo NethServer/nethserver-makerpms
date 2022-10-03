@@ -1,0 +1,55 @@
+name: Build and Push Container
+on:
+  push:
+  schedule:
+    - cron: "0 4 * * 1"
+env:
+  registry: docker.io
+  image: nethserver/makerpms
+  platforms: "linux/amd64"
+  registry_user: ${{ secrets.registry_user }}
+  registry_password: ${{ secrets.registry_password }}
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        target:
+          - makerpms
+          - buildsys
+          - devtoolset
+    steps:
+      - uses: actions/checkout@v3
+      - name: Outputting correct prefix/suffix for each target
+        id: prefix
+        run: |
+          if [[ "${{ matrix.target }}" != "makerpms" ]]; then
+            echo "::set-output name=prefix::-${{ matrix.target }}"
+          fi
+      - uses: docker/metadata-action@v4
+        id: meta
+        with:
+          images: |
+            ${{ env.registry }}/${{ env.image }}
+          tags: |
+            type=ref,event=branch,suffix=-7${{ steps.prefix.outputs.prefix }},enable=${{ github.ref != format('refs/heads/{0}', 'master') }}
+            type=raw,value=7,prefix=${{ steps.prefix.outputs.prefix }},enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+          flavor: |
+            latest=false
+      - uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: |
+            container/Containerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          layers: true
+          context: container
+          platforms: ${{ env.platforms }}
+          extra-args:
+            --target ${{ matrix.target }}
+      - uses: redhat-actions/push-to-registry@v2
+        if: ${{ env.registry_user != '' && env.registry_password != '' }}
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          username: ${{ env.registry_user }}
+          password: ${{ env.registry_password }}
