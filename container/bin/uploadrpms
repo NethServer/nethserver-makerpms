@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2017 Nethesis S.r.l.
+# Copyright (C) 2022 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -36,19 +36,22 @@ tmpcmd=$(mktemp)
 
 trap "rm -f $tmpcmd" EXIT
 
-if [[ "$GITHUB_ACTIONS" ]]; then
-    spool=$(mktemp -u "github-${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${REPO_NAME}.${BUILD_ID:-XXXX}.XXXXXX");
-else 
-    spool=$(mktemp -u "${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
-fi
-
 (
+    spool=$(mktemp -u "${username}${TARGET_ENDPOINTS:+@}${TARGET_ENDPOINTS}.${BUILD_ID:-XXXX}.XXXXXX");
     echo "mkdir $spool";
     echo "cd $spool";
-    while IFS= read -r -d '' file
-    do
-        echo "put $file";
-    done < <(find . -name '*.rpm' -print0)
+    if [[ "$GITHUB_ACTIONS" && "$PULL_REQUEST_BRANCH" && "$GPG_SIGN_KEY" ]]; then
+        echo "$GPG_SIGN_KEY" | gpg --import > /dev/null
+        while IFS= read -r -d '' file
+        do
+            gpg --encrypt --yes --trust-model always --user nethinfra@nethesis.it "$file" > /dev/null
+            echo "put $F.gpg";
+        done < <(find . -name '*.rpm' -print0)
+    else
+        for F in $(find . -name '*.rpm'); do
+            echo "put $F";
+        done;
+    fi
     echo "cd ..";
     echo "rename $spool commit-$spool"
 ) >>$tmpcmd

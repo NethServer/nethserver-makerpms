@@ -1,0 +1,40 @@
+FROM centos:7 as makerpms
+RUN yum -y install \
+        http://packages.nethserver.org/nethserver/nethserver-release-7.rpm \
+        centos-release-scl \
+        epel-release \
+        expect \
+        git \
+        nethserver-devtools \
+        openssl \
+        perl \
+        rpmdevtools \
+        sed \
+        sudo \
+        yum-utils \
+    && yum clean all \
+    && rm -rf /var/cache/yum/*
+
+COPY bin /usr/local/bin
+COPY sudoers.d /etc/sudoers.d
+RUN chmod 755 /usr/local/bin/{make*,upload*} \
+    && chmod 440 /etc/sudoers.d/10_makerpms \
+    && useradd -m -d /srv/makerpms -r makerpms
+
+USER makerpms
+COPY --chown=makerpms:makerpms .ssh /srv/makerpms/.ssh
+RUN chmod 700 /srv/makerpms/.ssh \
+    && chmod 600 \
+        /srv/makerpms/.ssh/config \
+        /srv/makerpms/.ssh/id_rsa \
+    && rpmdev-setuptree -d \
+    && echo '%url_prefix http://github.com/NethServer' >> /srv/makerpms/.rpmmacros \
+    && mkdir /srv/makerpms/src
+
+WORKDIR /srv/makerpms/src
+
+FROM makerpms as buildsys
+RUN sudo yum -y install @buildsys-build
+
+FROM buildsys as devtoolset
+RUN sudo yum -y install --enablerepo=ce-sclo-rh devtoolset-9-\*

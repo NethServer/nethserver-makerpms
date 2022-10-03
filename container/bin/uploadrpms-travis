@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2017 Nethesis S.r.l.
+# Copyright (C) 2022 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -20,20 +20,7 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e
+export PULL_REQUEST_BRANCH="$TRAVIS_PULL_REQUEST_BRANCH"
+export BUILD_ID="$TRAVIS_BUILD_ID"
 
-mkdir -v /srv/makerpms/src
-
-echo 'makerpms ALL=NOPASSWD: /usr/bin/yum' > /etc/sudoers.d/10_makerpms
-chmod 440 /etc/sudoers.d/10_makerpms
-
-mkdir -v /srv/makerpms/.ssh
-chmod -v 700 /srv/makerpms/.ssh
-cat - > /srv/makerpms/.ssh/config <<EOF
-UserKnownHostsFile=/dev/null
-StrictHostKeyChecking=no
-EOF
-touch /srv/makerpms/.ssh/id_rsa
-chmod -v 600 /srv/makerpms/.ssh/config /srv/makerpms/.ssh/id_rsa
-
-chown -R -c makerpms:makerpms ~makerpms
+exec uploadrpms-ci "$@"
