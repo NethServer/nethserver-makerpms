@@ -243,7 +243,7 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
       runs-on: ubuntu-22.04
       env:
         dest_id: core
-        docker_image: nethserver/makerpms:7
+        docker_image: ghcr.io/nethserver/makerpms:7
       steps:
         - uses: actions/checkout@v3
           with:
