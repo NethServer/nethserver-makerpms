@@ -32,11 +32,10 @@ if [ -z "$1" ]; then
     exec >&2
     echo "Build RPMs with podman"
     echo ""
-    echo "Usage: " 
+    echo "Usage: "
     echo "    " $(basename $0) "filename.spec [args]..."
     echo ""
     echo "Sensible to the following environment variables:"
-    echo " - NSVER (${NSVER}) # NethServer version"
     echo " - DIST (${DIST}) # Package DIST suffix"
     echo " - IMAGE # Override the builder image"
     echo " - COMMAND (${COMMAND:-makerpms}) # Override the builder command"

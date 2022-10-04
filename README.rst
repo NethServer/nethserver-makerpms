@@ -5,13 +5,13 @@ nethserver-makerpms
 
 RPM builds by Linux containers
 
-.. image:: https://travis-ci.com/NethServer/nethserver-makerpms.svg?branch=master
-    :target: https://travis-ci.com/NethServer/nethserver-makerpms
+.. |Build| image:: https://github.com/NethServer/nethserver-makerpms/actions/workflows/build-container.yml/badge.svg
+    :target: https://github.com/NethServer/nethserver-makerpms/actions
 
 
 This is a simple RPM build environment based on the official CentOS Docker image.
 
-It can build RPMs in the travis-ci.com environment, or on your local
+It can build RPMs in the github actions environment, or on your local
 Fedora 31+/CentOS 8 machine.
 
 Installation/upgrade
@@ -53,10 +53,6 @@ If the previous build requirements are met, change directory to the repository r
 Run without any argument to get a **brief help** ::
 
   $ makerpms
-
-To build a NethServer 6 RPM pass the ``NSVER`` environment variable to ``makerpms`` ::
-
-  $ NSVER=6 makerpms *.spec
 
 To build a package for another distribution pass the ``DIST`` environment variable ::
 
@@ -244,10 +240,9 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
     pull_request:
   jobs:
     make-rpm:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
       env:
         dest_id: core
-        nsver: 7
         docker_image: nethserver/makerpms:7
       steps:
         - uses: actions/checkout@v3
@@ -258,7 +253,7 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
           run: |
             cat > .env <<EOF
               DEST_ID=${{ env.dest_id }}
-              NSVER=${{ env.nsver }}
+              NSVER=7
               DOCKER_IMAGE=${{ env.docker_image }}
               GITHUB_ACTIONS=1
               GITHUB_HEAD_REF=${{ github.head_ref }}
@@ -280,11 +275,11 @@ This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
               --env-file .env \
               --hostname $GITHUB_RUN_ID-$GITHUB_RUN_NUMBER.nethserver.org \
               --volume $PWD:/srv/makerpms/src:ro \
-               ${{ env.docker_image }} \
+              ${{ env.docker_image }} \
               makerpms-github -s *.spec
             echo "Build succesful."
             if [[ "${{ secrets.endpoints_pack }}" && "${{ secrets.secret }}" ]]; then
-              echo "Publish configuration exists, pushing package to repo..."
+              echo "Publish configuration exists, pushing package to repo."
               docker commit makerpms nethserver/build
               docker run \
                 --env-file .env \
@@ -299,13 +294,13 @@ Usage
 
 GitHub Actions builds are triggered automatically when:
 
-* one or more commits are pushed to the `master` branch of the NethServer repository, as
+* one or more commits are pushed to the `master` or `main` branch of the NethServer repository, as
   stated in the ``.github/workflows/make-rpms.yml`` file inside the ``on.push.branches`` key
 
 * A *pull request* is opened from a NethServer repository fork or it is updated
   by submitting new commits
 
-After a successful build, the RPM is uploaded to ``packages.nethserver.org``,
+After a successful build, (if secrets are available) the RPM is uploaded to ``packages.nethserver.org``,
 according to the ``DEST_ID`` variable value. Supported values are ``core`` for
 NethServer core packages, and ``forge`` for NethForge packages.
 
@@ -322,15 +317,8 @@ Also issues are commented by ``nethbot`` if the following rules are respected in
 
 The build environment supports the following variables:
 
-- ``NSVER``
 - ``DOCKER_IMAGE``
 - ``DEST_ID``
-
-NSVER
-~~~~~
-
-``NSVER`` selects the target NethServer version for the build system. Currently
-the supported version values are ``7`` and ``6``.
 
 DOCKER_IMAGE
 ~~~~~~~~~~~~
