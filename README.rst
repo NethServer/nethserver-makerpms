@@ -226,8 +226,7 @@ To automate the RPM build process using GitHub
 * create a ``.github/workflows/make-rpms.yml`` file inside the source code repository hosted on
   GitHub.
 
-* the repository must have builds enabled and upload secrets properly set up, if the repo is inside Nethserver org, everything is already set up (as long as you have write access to the repo).
-  Contact the organization maintainer on `community.nethserver.org <https://community.nethserver.org>`_ for help.
+* the repository must have actions enabled and upload secrets properly set up, please contact the organization maintainer on `community.nethserver.org <https://community.nethserver.org>`_ for help.
 
 This is an example of ``.github/workflows/make-rpms.yml`` contents: ::
 
