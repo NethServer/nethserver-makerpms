@@ -1,8 +1,8 @@
 FROM centos:7 as makerpms
-RUN sed -i -e '/mirrorlist=http:\/\/mirrorlist.centos.org\// { s/^/#/ ; T }' \
+RUN sed -i -e '/^mirrorlist=http:\/\/mirrorlist.centos.org\// { s/^/#/ ; T }' \
            -e '{ s/#baseurl=/baseurl=/ ; s/mirror\.centos\.org/vault.centos.org/ ; s/\$releasever/7.9.2009/ }' \
-           /etc/yum.repos.d/CentOS-*.repo
-RUN yum -y install \
+           /etc/yum.repos.d/CentOS-*.repo \
+    && yum -y install \
         http://packages.nethserver.org/nethserver/nethserver-release-7.rpm \
         centos-release-scl \
         epel-release \
@@ -16,7 +16,10 @@ RUN yum -y install \
         sudo \
         yum-utils \
     && yum clean all \
-    && rm -rf /var/cache/yum/*
+    && rm -rf /var/cache/yum/* \
+    && sed -r -i -e '/^# ?baseurl=http:\/\/mirror.centos.org/ { s/# ?// ; s/mirror/vault/ }' \
+           -e '/^mirrorlist=http:\/\/mirrorlist.centos.org\?/ s/^/#/' \
+           /etc/yum.repos.d/CentOS-SCLo*.repo
 
 COPY bin /usr/local/bin
 COPY sudoers.d /etc/sudoers.d
