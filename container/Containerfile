@@ -1,4 +1,7 @@
 FROM centos:7 as makerpms
+RUN sed -i -e '/mirrorlist=http:\/\/mirrorlist.centos.org\// { s/^/#/ ; T }' \
+           -e '{ s/#baseurl=/baseurl=/ ; s/mirror\.centos\.org/vault.centos.org/ ; s/\$releasever/7.9.2009/ }' \
+           /etc/yum.repos.d/CentOS-*.repo
 RUN yum -y install \
         http://packages.nethserver.org/nethserver/nethserver-release-7.rpm \
         centos-release-scl \
