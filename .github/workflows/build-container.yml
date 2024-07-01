@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         registry:
-          - docker.io
           - ghcr.io
         target:
           - makerpms
