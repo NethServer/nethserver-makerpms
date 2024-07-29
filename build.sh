@@ -16,7 +16,7 @@ function build_image()
         container
 }
 
-image=${IMAGE_REPO:-nethserver/makerpms}
+image=${IMAGE_REPO:-ghcr.io/nethserver/makerpms}
 if ! command -v buildah &> /dev/null; then
     echo "buildah could not be found, is needed for the script to run."
     exit 1

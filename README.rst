@@ -92,11 +92,11 @@ Builder container images
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The builder container images are updated periodically and are available at
-https://hub.docker.com/r/nethserver/makerpms.
+https://github.com/nethserver/nethserver-makerpms/pkgs/container/makerpms.
 
-* ``nethserver/makerpms:7`` is the default image, for ``noarch`` builds
-* ``nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds (GCC 4)
-* ``nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds
+* ``ghcr.io/nethserver/makerpms:7`` is the default image, for ``noarch`` builds
+* ``ghcr.io/nethserver/makerpms:buildsys7`` is the image for ``x86_64`` builds (GCC 4)
+* ``ghcr.io/nethserver/makerpms:devtoolset7`` is the image for ``x86_64`` builds
   with GCC 9 (devtoolset-9 from SCLo), then run makerpms in a SCLo environment, e.g. : ::
 
     $ COMMAND="scl enable devtoolset-9 -- makerpms" makerpms *.spec
