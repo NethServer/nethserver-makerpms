@@ -48,9 +48,9 @@ fi
 if [[ -n "${IMAGE}" ]]; then
     image="${IMAGE}"
 elif grep -q -E 'BuildArch:\s*noarch' "${1}"; then
-    image=nethserver/makerpms:${NSVER}
+    image=ghcr.io/nethserver/makerpms:${NSVER}
 else
-    image=nethserver/makerpms:buildsys${NSVER}
+    image=ghcr.io/nethserver/makerpms:buildsys${NSVER}
 fi
 
 IFS=- read desc_tag desc_commitn desc_commith <<<$(git describe --tags --match "[0-9]*" --abbrev=7 HEAD 2>/dev/null)
